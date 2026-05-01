@@ -1,6 +1,6 @@
 #include "raylib.h"
 
-int main() {
+int main() { 
     InitWindow(800, 600, "Tank Attack!");
     SetTargetFPS(60);
 
