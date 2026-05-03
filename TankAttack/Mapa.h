@@ -2,8 +2,8 @@
 #include "Celda.h"
 #include "Grafo.h"
 
-const int FILAS = 20;
-const int COLUMNAS = 20;
+const int FILAS = 22;
+const int COLUMNAS = 40;
 
 class Mapa {
 public:

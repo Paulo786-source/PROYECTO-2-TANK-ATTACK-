@@ -17,6 +17,8 @@ public:
 
     void dibujarMapa(const Mapa& mapa);
 
+	void dibujarMapaTest(TipoCelda matriz[FILAS][COLUMNAS]);
+
     // las siguientes funciones se implementan en las siguientes fases
     
     // void dibujarTanques();
