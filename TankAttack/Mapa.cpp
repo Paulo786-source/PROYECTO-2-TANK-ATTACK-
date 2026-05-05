@@ -1,6 +1,7 @@
 #include "mapa.h"
 #include "Grafo.h"
 
+
 Mapa::Mapa() {
 	grafo = new Grafo(FILAS, COLUMNAS);
 	generarAleatorio();
@@ -43,5 +44,50 @@ void Mapa::getNeighbors(int fila, int columna, int* vecinos, int& cantidad) cons
 }
 
 bool Mapa::verificarConectividad() const {
+	bool visitado[FILAS * COLUMNAS] = {};
 
+	int cola[FILAS * COLUMNAS];
+	int frente = 0;
+	int fin = 0;
+
+	bool encontrado = false;
+
+	for (int i = 0; i < FILAS && !encontrado; i++) {
+		for (int j = 0; j < COLUMNAS && !encontrado; j++) {
+			if (celdas[i][j].tipo == TipoCelda::libre) {
+				int nodo = coordsANodo(i, j);
+				visitado[nodo] = true;
+				cola[fin] = nodo;
+				fin++;
+				encontrado = true;
+			}
+		}
+	}
+
+	while (frente != fin) {
+		int nodo = cola[frente];
+		frente++;
+		int vecinos[4];
+		int cantidad = 0;
+		grafo->obtenerVecinos(nodo, vecinos, cantidad);
+
+		for (int i = 0; i < cantidad; i++) {
+			int vecino = vecinos[i];
+			if (visitado[vecino] == false) {
+				visitado[vecino] = true;
+				cola[fin] = vecino;
+				fin++;
+			}
+		}
+	}
+
+	for (int i = 0; i < FILAS; i++) {
+		for (int j = 0; j < COLUMNAS; j++) {
+			int nodo = coordsANodo(i, j);
+			if (celdas[i][j].tipo == TipoCelda::libre && visitado[nodo] == false) {
+				return false;
+			}
+		}
+	}
+	return true;
 }
