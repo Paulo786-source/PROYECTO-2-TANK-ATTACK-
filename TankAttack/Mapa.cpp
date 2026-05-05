@@ -1,5 +1,6 @@
 #include "mapa.h"
 #include "Grafo.h"
+#include <iostream>
 
 
 Mapa::Mapa() {
@@ -90,4 +91,31 @@ bool Mapa::verificarConectividad() const {
 		}
 	}
 	return true;
+}
+
+void Mapa::generarAleatorio() {
+
+	for (int i = 0; i < FILAS; i++) {
+		for (int j = 0; j < COLUMNAS; j++) {
+			celdas[i][j].tipo = TipoCelda::libre;
+		}
+	}
+
+	grafo->limpiar();
+
+
+
+	for (int i = 1; i < FILAS - 1; i++) {
+		for (int j = 1; j < COLUMNAS - 1; j++) {
+			int random = rand() % 100;
+			bool esquinaSuperiorIzq = (i <= 1 && j <= 1);
+			bool esquinaSuperiorDer = (i <= 1 && j >= COLUMNAS - 2);
+			bool esquinaInferiorIzq = (i >= FILAS - 2 && j <= 1);
+			bool esquinaInferiorDer = (i >= FILAS - 2 && j >= COLUMNAS - 2);
+
+			if (random < 30 && !esquinaSuperiorIzq && !esquinaSuperiorDer && !esquinaInferiorIzq && !esquinaInferiorDer) {
+				celdas[i][j].tipo = TipoCelda::obstaculo;
+			}
+		}
+	}
 }

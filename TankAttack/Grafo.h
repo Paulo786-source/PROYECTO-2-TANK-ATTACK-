@@ -10,6 +10,7 @@ public:
     bool hayConexion(int nodoA, int nodoB) const;
     void obtenerVecinos(int nodo, int* vecinos, int& cantidad) const;
     int obtenerTotalNodos() const;
+    void limpiar();
 
 private:
     int filas;

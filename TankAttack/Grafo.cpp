@@ -41,3 +41,11 @@ void Grafo::obtenerVecinos(int nodo, int* vecinos, int& cantidad) const {
 int Grafo::obtenerTotalNodos() const {
 	return totalNodos;
 }
+
+void Grafo::limpiar() {
+	for (int i = 0; i < totalNodos; i++) {
+		for (int j = 0; j < totalNodos; j++) {
+			matrizAdyacencia[i][j] = false;
+		}
+	}
+}
