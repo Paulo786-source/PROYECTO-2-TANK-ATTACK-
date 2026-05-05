@@ -1,43 +1,20 @@
 #include "raylib.h"
+#include <cstdlib>
+#include <ctime>
 #include "Renderer.h"
 #include "Mapa.h"
 #include "Celda.h"
 
-const TipoCelda L = TipoCelda::libre;
-const TipoCelda O = TipoCelda::obstaculo;
-
-TipoCelda matriz[FILAS][COLUMNAS] = {
-    {L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L},
-    {L,O,O,L,L,L,L,L,L,L,L,L,L,O,O,L,L,L,L,L,L,L,L,L,O,O,L,L,L,L,L,L,L,L,L,L,L,O,O,L},
-    {L,O,L,L,L,L,L,L,L,L,L,L,L,L,O,L,L,L,L,L,L,L,L,L,L,O,L,L,L,L,L,L,L,L,L,L,L,L,O,L},
-    {L,L,L,L,L,O,O,L,L,L,L,L,L,L,L,L,L,L,O,O,L,L,L,L,L,L,L,L,L,O,O,L,L,L,L,L,L,L,L,L},
-    {L,L,L,L,L,O,L,L,L,L,L,L,L,L,L,L,L,L,O,L,L,L,L,L,L,L,L,L,L,O,L,L,L,L,L,L,L,L,L,L},
-    {L,L,L,L,L,L,L,L,O,O,O,L,L,L,L,L,L,L,L,L,L,O,O,O,L,L,L,L,L,L,L,L,O,O,O,L,L,L,L,L},
-    {L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L},
-    {L,L,O,O,L,L,L,L,L,L,L,L,L,L,L,O,O,L,L,L,L,L,L,L,L,L,O,O,L,L,L,L,L,L,L,O,O,L,L,L},
-    {L,L,O,L,L,L,L,L,L,L,L,L,L,L,L,L,O,L,L,L,L,L,L,L,L,L,L,O,L,L,L,L,L,L,L,L,O,L,L,L},
-    {L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L},
-    {L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L},
-    {L,L,O,L,L,L,L,L,L,L,L,L,L,L,L,L,O,L,L,L,L,L,L,L,L,L,L,O,L,L,L,L,L,L,L,L,O,L,L,L},
-    {L,L,O,O,L,L,L,L,L,L,L,L,L,L,L,O,O,L,L,L,L,L,L,L,L,L,O,O,L,L,L,L,L,L,L,O,O,L,L,L},
-    {L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L},
-    {L,L,L,L,L,L,L,L,O,O,O,L,L,L,L,L,L,L,L,L,L,O,O,O,L,L,L,L,L,L,L,L,O,O,O,L,L,L,L,L},
-    {L,L,L,L,L,O,L,L,L,L,L,L,L,O,L,L,L,L,L,L,L,L,L,L,L,O,L,L,L,L,L,L,L,L,L,L,L,L,L,L},
-    {L,L,L,L,L,O,O,L,L,L,L,L,O,O,L,L,L,L,O,O,L,L,L,L,L,O,O,L,L,L,L,L,O,O,L,L,L,L,L,L},
-    {L,O,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,O,L},
-    {L,O,O,L,L,L,L,L,L,L,L,L,L,L,L,L,L,O,O,L,L,L,L,L,L,L,L,L,L,L,L,O,O,L,L,L,L,O,O,L},
-    {L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L},
-    {L,L,O,O,L,L,L,L,L,O,O,L,L,L,L,L,L,L,L,L,O,O,L,L,L,L,L,L,O,O,L,L,L,L,L,L,L,L,L,L},
-    {L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L}
-};
 
 int main() { 
+    srand(time(nullptr));
+    Mapa mapa;
     Renderer renderer;
     renderer.inicializar();
 
     while (renderer.ventanaAbierta()) {
         renderer.iniciarDibujo();
-        renderer.dibujarMapaTest(matriz);   
+        renderer.dibujarMapa(mapa);   
         renderer.terminarDibujo();
     }
 

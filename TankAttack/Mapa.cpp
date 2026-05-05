@@ -1,6 +1,6 @@
 #include "mapa.h"
 #include "Grafo.h"
-#include <iostream>
+#include <cstdlib>
 
 
 Mapa::Mapa() {
@@ -94,28 +94,64 @@ bool Mapa::verificarConectividad() const {
 }
 
 void Mapa::generarAleatorio() {
-
-	for (int i = 0; i < FILAS; i++) {
-		for (int j = 0; j < COLUMNAS; j++) {
-			celdas[i][j].tipo = TipoCelda::libre;
-		}
-	}
-
-	grafo->limpiar();
-
-
-
-	for (int i = 1; i < FILAS - 1; i++) {
-		for (int j = 1; j < COLUMNAS - 1; j++) {
-			int random = rand() % 100;
-			bool esquinaSuperiorIzq = (i <= 1 && j <= 1);
-			bool esquinaSuperiorDer = (i <= 1 && j >= COLUMNAS - 2);
-			bool esquinaInferiorIzq = (i >= FILAS - 2 && j <= 1);
-			bool esquinaInferiorDer = (i >= FILAS - 2 && j >= COLUMNAS - 2);
-
-			if (random < 30 && !esquinaSuperiorIzq && !esquinaSuperiorDer && !esquinaInferiorIzq && !esquinaInferiorDer) {
-				celdas[i][j].tipo = TipoCelda::obstaculo;
+	bool conectado = false;
+	while (!conectado){
+		for (int i = 0; i < FILAS; i++) {
+			for (int j = 0; j < COLUMNAS; j++) {
+				celdas[i][j].tipo = TipoCelda::libre;
 			}
 		}
+
+		grafo->limpiar();
+
+
+
+		for (int i = 0; i < FILAS; i++) {
+			for (int j = 0; j < COLUMNAS; j++) {
+				int random = rand() % 100;
+				bool esquinaSuperiorIzq = (i <= 1 && j <= 1);
+				bool esquinaSuperiorDer = (i <= 1 && j >= COLUMNAS - 2);
+				bool esquinaInferiorIzq = (i >= FILAS - 2 && j <= 1);
+				bool esquinaInferiorDer = (i >= FILAS - 2 && j >= COLUMNAS - 2);
+
+				if (random < 20 && !esquinaSuperiorIzq && !esquinaSuperiorDer && !esquinaInferiorIzq && !esquinaInferiorDer) {
+					celdas[i][j].tipo = TipoCelda::obstaculo;
+				}
+			}
+		}
+
+
+
+		for (int i = 0; i < FILAS; i++) {
+			for (int j = 0; j < COLUMNAS; j++) {
+				if (celdas[i][j].tipo == TipoCelda::libre) {
+					int nodoPrincipal = coordsANodo(i, j);
+
+					// vecino arriba
+					if (i > 0 && celdas[i - 1][j].tipo == TipoCelda::libre) {
+						grafo->agregarArista(nodoPrincipal, coordsANodo(i - 1, j));
+					}
+
+					// vecino abajo
+					if (i < FILAS - 1 && celdas[i + 1][j].tipo == TipoCelda::libre) {
+						grafo->agregarArista(nodoPrincipal, coordsANodo(i + 1, j));
+					}
+
+					// vecino izquierda
+					if (j > 0 && celdas[i][j - 1].tipo == TipoCelda::libre) {
+						grafo->agregarArista(nodoPrincipal, coordsANodo(i, j - 1));
+					}
+
+					// vecino derecha
+					if (j < COLUMNAS - 1 && celdas[i][j + 1].tipo == TipoCelda::libre) {
+						grafo->agregarArista(nodoPrincipal, coordsANodo(i, j + 1));
+					}
+				}
+			}
+		}
+
+		conectado = verificarConectividad();
 	}
 }
+
+

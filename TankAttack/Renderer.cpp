@@ -30,28 +30,14 @@ void Renderer::terminarDibujo() {
 	EndDrawing();
 }
 
-void Renderer::dibujarMapaTest(TipoCelda matriz[FILAS][COLUMNAS]) {
-	for (int fila = 0; fila < FILAS; ++fila) {
-		for (int columna = 0; columna < COLUMNAS; ++columna) {
-			if (matriz[fila][columna] == TipoCelda::obstaculo) {
+void Renderer::dibujarMapa(const Mapa& mapa) {
+	for (int fila = 0; fila < mapa.obtenerFilas(); ++fila) {
+		for (int columna = 0; columna < mapa.obtenerColumnas(); ++columna) {
+			if (mapa.obtenerCelda(fila, columna).tipo == TipoCelda::obstaculo) {
 				DrawRectangle(columna * TAMANO_CELDA, fila * TAMANO_CELDA, TAMANO_CELDA, TAMANO_CELDA, GRAY);
-			}
-			else {
+			} else {
 				DrawRectangle(columna * TAMANO_CELDA, fila * TAMANO_CELDA, TAMANO_CELDA, TAMANO_CELDA, LIGHTGRAY);
 			}
 		}
 	}
 }
-
-
-//void Renderer::dibujarMapa(const Mapa& mapa) {
-//	for (int fila = 0; fila < mapa.obtenerFilas(); ++fila) {
-//		for (int columna = 0; columna < mapa.obtenerColumnas(); ++columna) {
-//			if (mapa.obtenerCelda(fila, columna).tipo == TipoCelda::obstaculo) {
-//				DrawRectangle(columna * TAMANO_CELDA, fila * TAMANO_CELDA, TAMANO_CELDA, TAMANO_CELDA, GRAY);
-//			} else {
-//				DrawRectangle(columna * TAMANO_CELDA, fila * TAMANO_CELDA, TAMANO_CELDA, TAMANO_CELDA, LIGHTGRAY);
-//			}
-//		}
-//	}
-//}
