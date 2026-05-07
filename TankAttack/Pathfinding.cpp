@@ -141,21 +141,50 @@ Ruta Pathfinding::Dijkstra(const Mapa& mapa, Posicion origen, Posicion destino) 
     return reconstruirRuta(mapa, padre, nodoOrigen, nodoDestino);
 }
 
+Ruta Pathfinding::avanzarHastaObstaculo(const Mapa& mapa, Posicion origen, Posicion destino) {
+    Ruta ruta;
+    int diferenciaFilas = destino.fila - origen.fila;
+    int diferenciaColumnas = destino.columna - origen.columna;
+    int pasos = abs(diferenciaFilas) > abs(diferenciaColumnas) ? abs(diferenciaFilas) : abs(diferenciaColumnas);
+
+    for (int i = 0; i <= pasos; i++) {
+        int fila = origen.fila + (int)((diferenciaFilas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
+        int columna = origen.columna + (int)((diferenciaColumnas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
+
+        // para si se topa con un obstáculo
+        if (mapa.obtenerCelda(fila, columna).tipo == TipoCelda::obstaculo) break;
+
+        ruta.nodos[ruta.longitud] = mapa.coordsANodo(fila, columna);
+        ruta.longitud++;
+    }
+    return ruta;
+}
+
+
+// agrega las celdas de una línea recta entre dos posiciones a una ruta existente
+void Pathfinding::agregarSegmento(const Mapa& mapa, Ruta& ruta, Posicion desde, Posicion hasta, bool saltarPrimero) {
+    int diferenciaFilas = hasta.fila - desde.fila;
+    int diferenciaColumnas = hasta.columna - desde.columna;
+    int pasos = abs(diferenciaFilas) > abs(diferenciaColumnas) ? abs(diferenciaFilas) : abs(diferenciaColumnas);
+
+    // si saltarPrimero es true entonces empieza en 1 para no repetir el punto de inicio
+    int inicio = saltarPrimero ? 1 : 0;
+
+    for (int i = inicio; i <= pasos; i++) {
+        int fila = desde.fila + (int)((diferenciaFilas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
+        int columna = desde.columna + (int)((diferenciaColumnas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
+        
+        if (mapa.obtenerCelda(fila, columna).tipo == TipoCelda::obstaculo) break;
+        
+        ruta.nodos[ruta.longitud] = mapa.coordsANodo(fila, columna);
+        ruta.longitud++;
+    }
+}
 Ruta Pathfinding::movimientoAleatorio(const Mapa& mapa, Posicion origen, Posicion destino) {
     // primero línea vista directa al destino
     if (hayLineaVista(mapa, origen, destino)) {
         Ruta ruta;
-
-        int diferenciaFilas = destino.fila - origen.fila;
-        int diferenciaColumnas = destino.columna - origen.columna;
-        int pasos = abs(diferenciaFilas) > abs(diferenciaColumnas) ? abs(diferenciaFilas) : abs(diferenciaColumnas);
-
-        for (int i = 0; i <= pasos; i++) {
-            int fila = origen.fila + (int)((diferenciaFilas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
-            int columna = origen.columna + (int)((diferenciaColumnas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
-            ruta.nodos[ruta.longitud] = mapa.coordsANodo(fila, columna);
-            ruta.longitud++;
-        }
+        agregarSegmento(mapa, ruta, origen, destino, false);
         return ruta;
     }
 
@@ -177,34 +206,23 @@ Ruta Pathfinding::movimientoAleatorio(const Mapa& mapa, Posicion origen, Posicio
             break;
         }
     }
-
+    // si no sirve, se intenta línea vista desde la intermedia al destino
     if (hayLineaVista(mapa, intermedia, destino)) {
-        // se llega a la intermedia con BFS y de ahí se traza la línea recta al destino
-        Ruta ruta = BFS(mapa, origen, intermedia);
-
-        int diferenciaFilas = destino.fila - intermedia.fila;
-        int diferenciaColumnas = destino.columna - intermedia.columna;
-        int pasos = abs(diferenciaFilas) > abs(diferenciaColumnas) ? abs(diferenciaFilas) : abs(diferenciaColumnas);
-
-        for (int i = 1; i <= pasos; i++) { // empezar en 1 para no repetir la intermedia
-            int fila = intermedia.fila + (int)((diferenciaFilas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
-            int columna = intermedia.columna + (int)((diferenciaColumnas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
-            ruta.nodos[ruta.longitud] = mapa.coordsANodo(fila, columna);
-            ruta.longitud++;
-        }
+        Ruta ruta;
+        agregarSegmento(mapa, ruta, origen, intermedia, false);
+        agregarSegmento(mapa, ruta, intermedia, destino, true);
         return ruta;
     }
 
-    // si ningún intento funcionó, se usa BFS normal para llegar hasta donde sea posible
-    return BFS(mapa, origen, destino);
+    // si ningún intento funcionó, se avanza hasta donde sea posible
+    return avanzarHastaObstaculo(mapa, origen, destino);
 }
 
 // decide qué algoritmo usar según el tipo de tanque y un número aleatorio
 Ruta Pathfinding::calcularRuta(const Mapa& mapa, Posicion origen, Posicion destino, bool esBFS) {
-    int probabilidad = rand() % 100; 
+    int probabilidad = rand() % 100;
 
     if (esBFS) {
-        // tanques azul/celeste: 50% BFS, 50% aleatorio
         if (probabilidad < 50) {
             return BFS(mapa, origen, destino);
         }
@@ -213,7 +231,6 @@ Ruta Pathfinding::calcularRuta(const Mapa& mapa, Posicion origen, Posicion desti
         }
     }
     else {
-        // tanques rojo/amarillo: 80% dijkstra, 20% aleatorio
         if (probabilidad < 80) {
             return Dijkstra(mapa, origen, destino);
         }
