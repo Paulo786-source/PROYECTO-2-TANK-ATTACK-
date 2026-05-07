@@ -39,6 +39,10 @@ int Mapa::obtenerColumnas() const {
 	return COLUMNAS;
 }
 
+Grafo* Mapa::obtenerGrafo() const {
+	return grafo;
+}
+
 void Mapa::getNeighbors(int fila, int columna, int* vecinos, int& cantidad) const {
 	int nodo = coordsANodo(fila, columna);
 	grafo->obtenerVecinos(nodo, vecinos, cantidad);

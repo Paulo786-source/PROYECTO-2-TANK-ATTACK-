@@ -129,7 +129,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Grafo.cpp" />
+    <ClCompile Include="Grafo.h" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mapa.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Renderer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Celda.h" />
+    <ClInclude Include="Mapa.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

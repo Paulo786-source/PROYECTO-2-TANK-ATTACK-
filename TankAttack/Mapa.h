@@ -22,7 +22,7 @@ public:
     int coordsANodo(int fila, int columna) const;
     void nodoEnCoordenadas(int nodo, int& fila, int& columna) const;
 
-    Grafo* obtenerGrafo();
+    Grafo* obtenerGrafo() const;
     int obtenerFilas() const;
     int obtenerColumnas() const;
 
