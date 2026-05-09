@@ -142,6 +142,22 @@
     <ClInclude Include="Mapa.h" />
     <ClInclude Include="Pathfinding.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Sonidos\boing.ogg" />
+    <None Include="Sonidos\cambio_turno.ogg" />
+    <None Include="Sonidos\caminando.ogg" />
+    <None Include="Sonidos\click.ogg" />
+    <None Include="Sonidos\disparo.ogg" />
+    <None Include="Sonidos\herir.ogg" />
+    <None Include="Sonidos\muerte.ogg" />
+    <None Include="Sonidos\powerup_activado.ogg" />
+    <None Include="Sonidos\recoger_powerup.ogg" />
+    <None Include="Sonidos\resultados.ogg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="Sonidos\musica_fondo.mp3" />
+    <Media Include="Sonidos\musica_inicio.mp3" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

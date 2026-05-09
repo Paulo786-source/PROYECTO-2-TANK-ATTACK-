@@ -48,4 +48,44 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Sonidos\boing.ogg">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Sonidos\cambio_turno.ogg">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Sonidos\caminando.ogg">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Sonidos\click.ogg">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Sonidos\disparo.ogg">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Sonidos\herir.ogg">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Sonidos\muerte.ogg">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Sonidos\powerup_activado.ogg">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Sonidos\recoger_powerup.ogg">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Sonidos\resultados.ogg">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="Sonidos\musica_fondo.mp3">
+      <Filter>Archivos de recursos</Filter>
+    </Media>
+    <Media Include="Sonidos\musica_inicio.mp3">
+      <Filter>Archivos de recursos</Filter>
+    </Media>
+  </ItemGroup>
 </Project>

@@ -2,22 +2,22 @@
 #include <cstdlib>
 #include <ctime>
 #include "Renderer.h"
-#include "Mapa.h"
-#include "Celda.h"
+#include "Map.h"
+#include "Cell.h"
 
 
-int main() { 
+int main() {
     srand(time(nullptr));
-    Mapa mapa;
+    Map map;
     Renderer renderer;
-    renderer.inicializar();
+    renderer.initialize();
 
-    while (renderer.ventanaAbierta()) {
-        renderer.iniciarDibujo();
-        renderer.dibujarMapa(mapa);   
-        renderer.terminarDibujo();
+    while (renderer.windowOpen()) {
+        renderer.beginFrame();
+        renderer.drawMap(map);
+        renderer.endFrame();
     }
 
-    renderer.cerrar();
+    renderer.close();
     return 0;
 }

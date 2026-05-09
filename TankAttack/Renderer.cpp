@@ -1,43 +1,43 @@
 #include "raylib.h"
 #include "Renderer.h"
-#include "Mapa.h"
-#include "Celda.h"
-#include <iostream>
+#include "Map.h"
+#include "Cell.h"
 
-Renderer::Renderer() : anchoVentana(1280), altoVentana(720) {}
+Renderer::Renderer() : windowWidth(1280), windowHeight(720) {}
 
 Renderer::~Renderer() {}
 
-void Renderer::inicializar() {
-	InitWindow(anchoVentana, altoVentana, "Tank Attack!");
-	SetTargetFPS(60);
+void Renderer::initialize() {
+    InitWindow(windowWidth, windowHeight, "Tank Attack!");
+    SetTargetFPS(60);
 }
 
-void Renderer::cerrar() {
-	CloseWindow();
+void Renderer::close() {
+    CloseWindow();
 }
 
-bool Renderer::ventanaAbierta() const {
-	return !WindowShouldClose();
+bool Renderer::windowOpen() const {
+    return !WindowShouldClose();
 }
 
-void Renderer::iniciarDibujo() {
-	BeginDrawing();
-	ClearBackground(RAYWHITE);
+void Renderer::beginFrame() {
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
 }
 
-void Renderer::terminarDibujo() {
-	EndDrawing();
+void Renderer::endFrame() {
+    EndDrawing();
 }
 
-void Renderer::dibujarMapa(const Mapa& mapa) {
-	for (int fila = 0; fila < mapa.obtenerFilas(); ++fila) {
-		for (int columna = 0; columna < mapa.obtenerColumnas(); ++columna) {
-			if (mapa.obtenerCelda(fila, columna).tipo == TipoCelda::obstaculo) {
-				DrawRectangle(columna * TAMANO_CELDA, fila * TAMANO_CELDA, TAMANO_CELDA, TAMANO_CELDA, GRAY);
-			} else {
-				DrawRectangle(columna * TAMANO_CELDA, fila * TAMANO_CELDA, TAMANO_CELDA, TAMANO_CELDA, LIGHTGRAY);
-			}
-		}
-	}
+void Renderer::drawMap(const Map& map) {
+    for (int row = 0; row < map.getRows(); ++row) {
+        for (int col = 0; col < map.getCols(); ++col) {
+            if (map.getCell(row, col).type == CellType::obstacle) {
+                DrawRectangle(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE, GRAY);
+            }
+            else {
+                DrawRectangle(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE, LIGHTGRAY);
+            }
+        }
+    }
 }

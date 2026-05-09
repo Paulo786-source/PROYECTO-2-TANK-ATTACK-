@@ -1,31 +1,31 @@
 #pragma once
 #include "raylib.h"
-#include "Mapa.h"
+#include "Map.h"
 
-const int TAMANO_CELDA = 32;
+const int CELL_SIZE = 32;
 
 class Renderer {
 public:
     Renderer();
     ~Renderer();
 
-    void inicializar();
-    void cerrar();
-    bool ventanaAbierta() const;
-    void iniciarDibujo();
-    void terminarDibujo();
+    void initialize();
+    void close();
+    bool windowOpen() const;
+    void beginFrame();
+    void endFrame();
 
-    void dibujarMapa(const Mapa& mapa);
+    void drawMap(const Map& map);
 
     // las siguientes funciones se implementan en las siguientes fases
-    
-    // void dibujarTanques();
-    // void dibujarRuta();
-    // void dibujarBalas();
-    // void dibujarHUD();
-    // void dibujarPowerUps();
+
+    // void drawTanks();
+    // void drawPath();
+    // void drawBullets();
+    // void drawHUD();
+    // void drawPowerUps();
 
 private:
-    int anchoVentana;
-    int altoVentana;
+    int windowWidth;
+    int windowHeight;
 };

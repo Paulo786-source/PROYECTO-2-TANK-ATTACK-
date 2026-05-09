@@ -2,46 +2,48 @@
 #include <cstdlib>
 #include <cmath>
 
-Ruta Pathfinding::reconstruirRuta(const Mapa& mapa, int* padre, int nodoOrigen, int nodoDestino) {
-    Ruta ruta;
+Path Pathfinding::reconstructPath(const Map& map, int* parent, int originNode, int destNode) {
+    Path path;
 
     // recorrer de destino a origen siguiendo los padres
-    int actual = nodoDestino;
-    while (actual != -1) {
-        ruta.nodos[ruta.longitud] = actual;
-        ruta.longitud++;
-        actual = padre[actual];
+    int current = destNode;
+
+    while (current != -1) {
+        path.nodes[path.length] = current;
+        path.length++;
+        current = parent[current];
     }
 
     // invertir el arreglo para que quede de origen a destino
-    int izquierda = 0;
-    int derecha = ruta.longitud - 1;
-    while (izquierda < derecha) {
-        int temp = ruta.nodos[izquierda];
-        ruta.nodos[izquierda] = ruta.nodos[derecha];
-        ruta.nodos[derecha] = temp;
-        izquierda++;
-        derecha--;
+    int left = 0;
+    int right = path.length - 1;
+
+    while (left < right) {
+        int temp = path.nodes[left];
+        path.nodes[left] = path.nodes[right];
+        path.nodes[right] = temp;
+        left++;
+        right--;
     }
 
-    return ruta;
+    return path;
 }
 
-bool Pathfinding::hayLineaVista(const Mapa& mapa, Posicion a, Posicion b) {
-    int diferenciaFilas = b.fila - a.fila;
-    int diferenciaColumnas = b.columna - a.columna;
+bool Pathfinding::hasLineOfSight(const Map& map, Position a, Position b) {
+    int rowDiff = b.row - a.row;
+    int colDiff = b.col - a.col;
 
     // la cantidad de pasos es el mayor de los dos desplazamientos
-    int pasos = abs(diferenciaFilas) > abs(diferenciaColumnas) ? abs(diferenciaFilas) : abs(diferenciaColumnas);
-    if (pasos == 0) return true; 
+    int steps = abs(rowDiff) > abs(colDiff) ? abs(rowDiff) : abs(colDiff);
+    if (steps == 0) return true;
 
-    for (int i = 1; i <= pasos; i++) {
+    for (int i = 1; i <= steps; i++) {
         // interpolar la posición en cada paso para trazar la línea
         // se suma 0.5f para no redondear hacia abajo
-        int fila = a.fila + (int)((diferenciaFilas * i) / (float)pasos + 0.5f);
-        int columna = a.columna + (int)((diferenciaColumnas * i) / (float)pasos + 0.5f);
+        int row = a.row + (int)((rowDiff * i) / (float)steps + 0.5f);
+        int col = a.col + (int)((colDiff * i) / (float)steps + 0.5f);
 
-        if (mapa.obtenerCelda(fila, columna).tipo == TipoCelda::obstaculo) {
+        if (map.getCell(row, col).type == CellType::obstacle) {
             return false;
         }
     }
@@ -49,193 +51,196 @@ bool Pathfinding::hayLineaVista(const Mapa& mapa, Posicion a, Posicion b) {
 }
 
 // para tanques azul/celeste
-Ruta Pathfinding::BFS(const Mapa& mapa, Posicion origen, Posicion destino) {
-    int totalNodos = FILAS * COLUMNAS;
-    int nodoOrigen = mapa.coordsANodo(origen.fila, origen.columna);
-    int nodoDestino = mapa.coordsANodo(destino.fila, destino.columna);
+Path Pathfinding::BFS(const Map& map, Position origin, Position destination) {
+    int totalNodes = ROWS * COLS;
+    int originNode = map.coordsToNode(origin.row, origin.col);
+    int destNode = map.coordsToNode(destination.row, destination.col);
+    bool visited[ROWS * COLS] = {};
+    int  parent[ROWS * COLS];
 
-    bool visitado[FILAS * COLUMNAS] = {};
-    int  padre[FILAS * COLUMNAS];
-    for (int i = 0; i < totalNodos; i++) padre[i] = -1; 
+    for (int i = 0; i < totalNodes; i++) parent[i] = -1;
 
-    int cola[FILAS * COLUMNAS];
-    int frente = 0, fin = 0;
+    int queue[ROWS * COLS];
+    int front = 0, back = 0;
 
-    visitado[nodoOrigen] = true;
-    cola[fin] = nodoOrigen;
-    fin++;
+    visited[originNode] = true;
+    queue[back] = originNode;
+    back++;
 
-    while (frente != fin) {
-        int actual = cola[frente];
-        frente++;
+    while (front != back) {
+        int current = queue[front];
+        front++;
 
-        if (actual == nodoDestino) break;
+        if (current == destNode) break;
 
-        int vecinos[4];
-        int cantidad = 0;
-        mapa.obtenerGrafo()->obtenerVecinos(actual, vecinos, cantidad);
+        int neighbors[4];
+        int count = 0;
+        map.getGraph()->getNeighbors(current, neighbors, count);
 
-        for (int i = 0; i < cantidad; i++) {
-            int vecino = vecinos[i];
-            if (!visitado[vecino]) {
-                visitado[vecino] = true;
-                padre[vecino] = actual;
-                cola[fin] = vecino;
-                fin++;
+        for (int i = 0; i < count; i++) {
+            int neighbor = neighbors[i];
+            if (!visited[neighbor]) {
+                visited[neighbor] = true;
+                parent[neighbor] = current;
+                queue[back] = neighbor;
+                back++;
             }
         }
     }
 
-    if (!visitado[nodoDestino]) return Ruta(); // no hay camino posible
+    if (!visited[destNode]) return Path(); // no hay camino posible
 
-    return reconstruirRuta(mapa, padre, nodoOrigen, nodoDestino);
+    return reconstructPath(map, parent, originNode, destNode);
 }
 
 // para tanques rojo/amarillo
-Ruta Pathfinding::Dijkstra(const Mapa& mapa, Posicion origen, Posicion destino) {
-    int totalNodos = FILAS * COLUMNAS;
-    int nodoOrigen = mapa.coordsANodo(origen.fila, origen.columna);
-    int nodoDestino = mapa.coordsANodo(destino.fila, destino.columna);
+Path Pathfinding::Dijkstra(const Map& map, Position origin, Position destination) {
+    int totalNodes = ROWS * COLS;
+    int originNode = map.coordsToNode(origin.row, origin.col);
+    int destNode = map.coordsToNode(destination.row, destination.col);
 
-    int  distancia[FILAS * COLUMNAS];
-    bool visitado[FILAS * COLUMNAS] = {};
-    int  padre[FILAS * COLUMNAS];
+    int  distance[ROWS * COLS];
+    bool visited[ROWS * COLS] = {};
+    int  parent[ROWS * COLS];
 
     // empiezan todas las distancias en infinito
-    for (int i = 0; i < totalNodos; i++) {
-        distancia[i] = 999999;
-        padre[i] = -1;
+    for (int i = 0; i < totalNodes; i++) {
+        distance[i] = 999999;
+        parent[i] = -1;
     }
-    distancia[nodoOrigen] = 0;
+    distance[originNode] = 0;
 
-    for (int iter = 0; iter < totalNodos; iter++) {
+    for (int iter = 0; iter < totalNodes; iter++) {
         // buscar el nodo no visitado con menor distancia acumulada
         int u = -1;
-        for (int i = 0; i < totalNodos; i++) {
-            if (!visitado[i] && (u == -1 || distancia[i] < distancia[u])) {
+        for (int i = 0; i < totalNodes; i++) {
+            if (!visited[i] && (u == -1 || distance[i] < distance[u])) {
                 u = i;
             }
         }
 
-        if (u == -1 || distancia[u] == 999999) break; // no quedan nodos alcanzables
-        if (u == nodoDestino) break;
+        if (u == -1 || distance[u] == 999999) break; // no quedan nodos alcanzables
+        if (u == destNode) break;
 
-        visitado[u] = true;
+        visited[u] = true;
 
-        int vecinos[4];
-        int cantidad = 0;
-        mapa.obtenerGrafo()->obtenerVecinos(u, vecinos, cantidad);
+        int neighbors[4];
+        int count = 0;
+        map.getGraph()->getNeighbors(u, neighbors, count);
 
-        for (int i = 0; i < cantidad; i++) {
-            int vecino = vecinos[i];
-            int nuevaDistancia = distancia[u] + 1; // cada celda tiene peso 1
-            if (nuevaDistancia < distancia[vecino]) {
-                distancia[vecino] = nuevaDistancia;
-                padre[vecino] = u;
+        for (int i = 0; i < count; i++) {
+            int neighbor = neighbors[i];
+            int newDistance = distance[u] + 1; // cada celda tiene peso 1
+
+            if (newDistance < distance[neighbor]) {
+                distance[neighbor] = newDistance;
+                parent[neighbor] = u;
             }
         }
     }
 
-    if (distancia[nodoDestino] == 999999) return Ruta(); // no hay camino posible
+    if (distance[destNode] == 999999) return Path(); // no hay camino posible
 
-    return reconstruirRuta(mapa, padre, nodoOrigen, nodoDestino);
+    return reconstructPath(map, parent, originNode, destNode);
 }
 
-Ruta Pathfinding::avanzarHastaObstaculo(const Mapa& mapa, Posicion origen, Posicion destino) {
-    Ruta ruta;
-    int diferenciaFilas = destino.fila - origen.fila;
-    int diferenciaColumnas = destino.columna - origen.columna;
-    int pasos = abs(diferenciaFilas) > abs(diferenciaColumnas) ? abs(diferenciaFilas) : abs(diferenciaColumnas);
+Path Pathfinding::advanceUntilObstacle(const Map& map, Position origin, Position destination) {
+    Path path;
+    int rowDiff = destination.row - origin.row;
+    int colDiff = destination.col - origin.col;
+    int steps = abs(rowDiff) > abs(colDiff) ? abs(rowDiff) : abs(colDiff);
 
-    for (int i = 0; i <= pasos; i++) {
-        int fila = origen.fila + (int)((diferenciaFilas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
-        int columna = origen.columna + (int)((diferenciaColumnas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
+    for (int i = 0; i <= steps; i++) {
+        int row = origin.row + (int)((rowDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
+        int col = origin.col + (int)((colDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
 
         // para si se topa con un obstáculo
-        if (mapa.obtenerCelda(fila, columna).tipo == TipoCelda::obstaculo) break;
+        if (map.getCell(row, col).type == CellType::obstacle) break;
 
-        ruta.nodos[ruta.longitud] = mapa.coordsANodo(fila, columna);
-        ruta.longitud++;
+        path.nodes[path.length] = map.coordsToNode(row, col);
+        path.length++;
     }
-    return ruta;
+    return path;
 }
 
 
 // agrega las celdas de una línea recta entre dos posiciones a una ruta existente
-void Pathfinding::agregarSegmento(const Mapa& mapa, Ruta& ruta, Posicion desde, Posicion hasta, bool saltarPrimero) {
-    int diferenciaFilas = hasta.fila - desde.fila;
-    int diferenciaColumnas = hasta.columna - desde.columna;
-    int pasos = abs(diferenciaFilas) > abs(diferenciaColumnas) ? abs(diferenciaFilas) : abs(diferenciaColumnas);
+void Pathfinding::addSegment(const Map& map, Path& path, Position from, Position to, bool skipFirst) {
+    int rowDiff = to.row - from.row;
+    int colDiff = to.col - from.col;
+    int steps = abs(rowDiff) > abs(colDiff) ? abs(rowDiff) : abs(colDiff);
 
-    // si saltarPrimero es true entonces empieza en 1 para no repetir el punto de inicio
-    int inicio = saltarPrimero ? 1 : 0;
+    // si skipFirst es true entonces empieza en 1 para no repetir el punto de inicio
+    int start = skipFirst ? 1 : 0;
 
-    for (int i = inicio; i <= pasos; i++) {
-        int fila = desde.fila + (int)((diferenciaFilas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
-        int columna = desde.columna + (int)((diferenciaColumnas * i) / (float)(pasos == 0 ? 1 : pasos) + 0.5f);
-        
-        if (mapa.obtenerCelda(fila, columna).tipo == TipoCelda::obstaculo) break;
-        
-        ruta.nodos[ruta.longitud] = mapa.coordsANodo(fila, columna);
-        ruta.longitud++;
+    for (int i = start; i <= steps; i++) {
+        int row = from.row + (int)((rowDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
+        int col = from.col + (int)((colDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
+
+        if (map.getCell(row, col).type == CellType::obstacle) break;
+
+        path.nodes[path.length] = map.coordsToNode(row, col);
+        path.length++;
     }
 }
-Ruta Pathfinding::movimientoAleatorio(const Mapa& mapa, Posicion origen, Posicion destino) {
+
+Path Pathfinding::randomMovement(const Map& map, Position origin, Position destination) {
     // primero línea vista directa al destino
-    if (hayLineaVista(mapa, origen, destino)) {
-        Ruta ruta;
-        agregarSegmento(mapa, ruta, origen, destino, false);
-        return ruta;
+    if (hasLineOfSight(map, origin, destination)) {
+        Path path;
+        addSegment(map, path, origin, destination, false);
+        return path;
     }
 
     // si no hay línea vista entonces se elige una celda libre aleatoria dentro del radio
-    Posicion intermedia = origen;
+    Position midpoint = origin;
 
-    for (int intento = 0; intento < 10; intento++) {
-        int saltoDeFila = (rand() % (2 * RADIO_ALEATORIO + 1)) - RADIO_ALEATORIO;
-        int saltoDeColumna = (rand() % (2 * RADIO_ALEATORIO + 1)) - RADIO_ALEATORIO;
+    for (int attempt = 0; attempt < 10; attempt++) {
+        int rowJump = (rand() % (2 * RANDOM_RADIUS + 1)) - RANDOM_RADIUS;
+        int colJump = (rand() % (2 * RANDOM_RADIUS + 1)) - RANDOM_RADIUS;
 
-        int nuevaFila = origen.fila + saltoDeFila;
-        int nuevaColumna = origen.columna + saltoDeColumna;
+        int newRow = origin.row + rowJump;
+        int newCol = origin.col + colJump;
 
-        bool dentroDelMapa = (nuevaFila >= 0 && nuevaFila < FILAS &&
-            nuevaColumna >= 0 && nuevaColumna < COLUMNAS);
+        bool inBounds = (newRow >= 0 && newRow < ROWS &&
+            newCol >= 0 && newCol < COLS);
 
-        if (dentroDelMapa && mapa.obtenerCelda(nuevaFila, nuevaColumna).tipo == TipoCelda::libre) {
-            intermedia = { nuevaFila, nuevaColumna };
+        if (inBounds && map.getCell(newRow, newCol).type == CellType::free) {
+            midpoint = { newRow, newCol };
             break;
         }
     }
+
     // si no sirve, se intenta línea vista desde la intermedia al destino
-    if (hayLineaVista(mapa, intermedia, destino)) {
-        Ruta ruta;
-        agregarSegmento(mapa, ruta, origen, intermedia, false);
-        agregarSegmento(mapa, ruta, intermedia, destino, true);
-        return ruta;
+    if (hasLineOfSight(map, midpoint, destination)) {
+        Path path;
+        addSegment(map, path, origin, midpoint, false);
+        addSegment(map, path, midpoint, destination, true);
+        return path;
     }
 
     // si ningún intento funcionó, se avanza hasta donde sea posible
-    return avanzarHastaObstaculo(mapa, origen, destino);
+    return advanceUntilObstacle(map, origin, destination);
 }
 
 // decide qué algoritmo usar según el tipo de tanque y un número aleatorio
-Ruta Pathfinding::calcularRuta(const Mapa& mapa, Posicion origen, Posicion destino, bool esBFS) {
-    int probabilidad = rand() % 100;
+Path Pathfinding::calculatePath(const Map& map, Position origin, Position destination, bool useBFS) {
+    int probability = rand() % 100;
 
-    if (esBFS) {
-        if (probabilidad < 50) {
-            return BFS(mapa, origen, destino);
+    if (useBFS) {
+        if (probability < 50) {
+            return BFS(map, origin, destination);
         }
         else {
-            return movimientoAleatorio(mapa, origen, destino);
+            return randomMovement(map, origin, destination);
         }
     }
     else {
-        if (probabilidad < 80) {
-            return Dijkstra(mapa, origen, destino);
+        if (probability < 80) {
+            return Dijkstra(map, origin, destination);
         }
         else {
-            return movimientoAleatorio(mapa, origen, destino);
+            return randomMovement(map, origin, destination);
         }
     }
 }
