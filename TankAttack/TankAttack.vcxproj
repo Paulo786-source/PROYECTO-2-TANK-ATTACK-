@@ -129,17 +129,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Grafo.cpp" />
-    <ClCompile Include="Grafo.h" />
+    <ClCompile Include="Graph.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Mapa.cpp" />
+    <ClCompile Include="Map.cpp" />
     <ClCompile Include="Pathfinding.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Renderer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Celda.h" />
-    <ClInclude Include="Mapa.h" />
+    <ClInclude Include="Cell.h" />
+    <ClInclude Include="Graph.h" />
+    <ClInclude Include="Map.h" />
     <ClInclude Include="Pathfinding.h" />
   </ItemGroup>
   <ItemGroup>
