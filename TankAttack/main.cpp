@@ -1,23 +1,10 @@
-#include "raylib.h"
+#include "Game.h"
 #include <cstdlib>
 #include <ctime>
-#include "Renderer.h"
-#include "Map.h"
-#include "Cell.h"
-
 
 int main() {
     srand(time(nullptr));
-    Map map;
-    Renderer renderer;
-    renderer.initialize();
-
-    while (renderer.windowOpen()) {
-        renderer.beginFrame();
-        renderer.drawMap(map);
-        renderer.endFrame();
-    }
-
-    renderer.close();
+    Game game;
+    game.run();
     return 0;
 }
