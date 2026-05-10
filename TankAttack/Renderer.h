@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "Map.h"
+#include "Player.h"
 
 const int CELL_SIZE = 32;
 
@@ -17,9 +18,11 @@ public:
 
     void drawMap(const Map& map);
 
+    
+
     // las siguientes funciones se implementan en las siguientes fases
 
-    // void drawTanks();
+    void drawTanks(Player& one, Player& two);
     // void drawPath();
     // void drawBullets();
     // void drawHUD();
