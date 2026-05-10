@@ -8,11 +8,13 @@ private:
 	
 	int playerNumber;
 
-	Tank tanks[4];
+	Tank* tanks[4];
 
 public:
 
 	Player(int playerNumber);
+
+	~Player();
 
 	Tank& getTank(int index);
 
