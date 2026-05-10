@@ -133,14 +133,19 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Pathfinding.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Renderer.h" />
+    <ClCompile Include="Tank.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cell.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Pathfinding.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Tank.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Sonidos\boing.ogg" />
@@ -157,6 +162,9 @@
   <ItemGroup>
     <Media Include="Sonidos\musica_fondo.mp3" />
     <Media Include="Sonidos\musica_inicio.mp3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TankAttack.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
