@@ -23,7 +23,7 @@ public:
     // las siguientes funciones se implementan en las siguientes fases
 
     void drawTanks(Player& one, Player& two);
-    // void drawPath();
+    void drawPath(const Path& path, const Map& map);
     // void drawBullets();
     // void drawHUD();
     // void drawPowerUps();

@@ -2,6 +2,7 @@
 #include "Map.h"
 #include "Renderer.h"
 #include "Player.h"
+#include "Pathfinding.h"
 
 
 class Game
@@ -25,6 +26,8 @@ private:
     int currentTurn = 1;
 
     Tank* selectedTank = nullptr;
+
+    Path currentPath;
 
 };
 

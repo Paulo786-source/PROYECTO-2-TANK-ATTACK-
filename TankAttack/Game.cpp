@@ -69,7 +69,29 @@ void Game::handleInput() {
                 }
                 // mover el tanque al destino
                 if (map.getCell(clickRow, clickCol).type == CellType::free && !cellOccupied) {
-                    selectedTank->setPosition({ clickRow, clickCol });
+                    int rowTank = selectedTank->getPosition().row;
+                    int colTank = selectedTank->getPosition().col;
+                    Position origin = {rowTank, colTank};
+                    Position destination = { clickRow, clickCol };
+                    if (selectedTank->getTankType() == Tank::TankType::BFS) {
+                        currentPath = Path();
+                        currentPath = Pathfinding::calculatePath(map, origin, destination, true);
+                    }
+                    else {
+                        currentPath = Path();
+                        currentPath = Pathfinding::calculatePath(map, origin, destination, false);
+                    }
+                    if (currentPath.length > 0) {
+                        int lastNode = currentPath.nodes[currentPath.length - 1];
+                        int destRow;
+                        int destCol;
+                        map.nodeToCoords(lastNode, destRow, destCol);
+                        selectedTank->setPosition({ destRow, destCol });
+                    }
+                    
+                    
+
+
                     selectedTank->setSelected(false);
                     selectedTank = nullptr;
                     currentTurn = (currentTurn == 1) ? 2 : 1;
@@ -87,6 +109,7 @@ void Game::update() {
 void Game::render() {
     renderer.beginFrame();
     renderer.drawMap(map);
+    renderer.drawPath(currentPath, map);
     renderer.drawTanks(player1, player2);
     if (currentTurn == 1) {
         DrawText("Turno: Jugador 1", 10, 10, 20, BLUE);

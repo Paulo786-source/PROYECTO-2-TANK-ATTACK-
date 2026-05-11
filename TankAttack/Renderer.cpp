@@ -92,3 +92,12 @@ void Renderer::drawTanks(Player& playerOne, Player& playerTwo) {
 
     }
 }
+
+void Renderer::drawPath(const Path& path, const Map& map) {
+    for (int i = 0; i < path.length; i++) {
+        int drawRow;
+        int drawCol;
+        map.nodeToCoords(path.nodes[i], drawRow, drawCol);
+        DrawRectangle(drawCol * CELL_SIZE, drawRow * CELL_SIZE, CELL_SIZE, CELL_SIZE, PURPLE);
+    }
+}
