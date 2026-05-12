@@ -1,6 +1,7 @@
 #include "Pathfinding.h"
 #include <cstdlib>
 #include <cmath>
+#include "Player.h"
 
 Path Pathfinding::reconstructPath(const Map& map, int* parent, int originNode, int destNode) {
     Path path;
@@ -243,4 +244,125 @@ Path Pathfinding::calculatePath(const Map& map, Position origin, Position destin
             return randomMovement(map, origin, destination);
         }
     }
+}
+
+// toma el vector entre origen y destino y lo simplifica a -1, 0 o 1
+void Pathfinding::getInitialDirection(Position origin, Position target, int& dx, int& dy) {
+    int rowDiff = target.row - origin.row;
+    int colDiff = target.col - origin.col;
+
+    // lo convierte en -1, 0, 1
+    if (rowDiff != 0) dx = rowDiff / abs(rowDiff);
+    else dx = 0;
+
+    if (colDiff != 0) dy = colDiff / abs(colDiff);
+    else dy = 0;
+}
+
+BulletPath Pathfinding::traceBulletWithBounces(const Map& map, Position origin, int dx, int dy, Player& player1, Player& player2) {
+    BulletPath result;
+    int currentRow = origin.row;
+    int currentCol = origin.col;
+    int bounces = 0;
+    int steps = 0;
+
+    // agrega posición inicial
+    result.nodes[result.length++] = map.coordsToNode(currentRow, currentCol);
+
+    while (steps < MAX_BULLET_STEPS && bounces <= MAX_BOUNCES) {
+        int nextRow = currentRow + dx;
+        int nextCol = currentCol + dy;
+
+        // verifica los límites del mapa
+        bool outRow = (nextRow < 0 || nextRow >= ROWS);
+        bool outCol = (nextCol < 0 || nextCol >= COLS);
+
+        if (outRow && outCol) {
+            // si es una esquina rebota en ambas direcciones
+            dx = -dx;
+            dy = -dy;
+            bounces++;
+            steps++;
+            continue;
+        }
+
+        if (outRow) {
+            // si choca con borde horizontal rebota en y 
+            dx = -dx;
+            bounces++;
+            steps++;
+            continue;
+        }
+
+        if (outCol) {
+            // si choca con borde vertical rebota en x
+            dy = -dy;
+            bounces++;
+            steps++;
+            continue;
+        }
+
+        bool nextIsObstacle = (map.getCell(nextRow, nextCol).type == CellType::obstacle);
+
+        if (nextIsObstacle) {
+            // determinar tipo de rebote
+            bool blockedRow = (map.getCell(currentRow + dx, nextCol).type == CellType::obstacle || 
+                currentRow + dx < 0 || currentRow + dx >= ROWS);
+            bool blockedCol = (map.getCell(nextRow, currentCol + dy).type == CellType::obstacle ||
+                nextCol < 0 || nextCol >= COLS);
+
+            if (blockedRow && blockedCol) {
+                // esquina
+                dx = -dx;
+                dy = -dy;
+            } else if (blockedRow) {
+                dx = -dx;   
+            } else {
+                dy = -dy;   
+            }
+
+            bounces++;
+            steps++;
+            continue;
+        }
+
+        // si la celda está libre verifica si hay un tanque
+        int nextNode = map.coordsToNode(nextRow, nextCol);
+        bool tankFound = false;
+
+        for (int p = 1; p <= 2; p++) {
+            Player& pl = (p == 1) ? player1 : player2;
+            for (int t = 0; t < 4; t++) {
+                Tank& tank = pl.getTank(t);
+                if (tank.isAlive() &&
+                    tank.getPosition().row == nextRow &&
+                    tank.getPosition().col == nextCol) {
+
+                    // registrar impacto
+                    result.nodes[result.length++] = nextNode;
+                    result.hitTank = true;
+                    result.hitTankNode = nextNode;
+                    return result;
+                }
+            }
+        }
+
+        // avanzar normal
+        currentRow = nextRow;
+        currentCol = nextCol;
+        result.nodes[result.length++] = map.coordsToNode(currentRow, currentCol);
+        steps++;
+    }
+
+    return result;
+}
+
+BulletPath Pathfinding::calculateBulletPath(const Map& map, Position origin, Position target, Player& player1, Player& player2) {
+    int dx = 0, dy = 0;
+    getInitialDirection(origin, target, dx, dy);
+
+    // no hay dirección 
+    if (dx == 0 && dy == 0) return BulletPath();
+
+    return traceBulletWithBounces(map, origin, dx, dy, player1, player2);
 }
