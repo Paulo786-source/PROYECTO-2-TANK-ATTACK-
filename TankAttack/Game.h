@@ -19,6 +19,9 @@ private:
     Map map;
     Renderer renderer;
 
+    BulletPath bulletTrail;
+    void dealBulletDamage(const BulletPath& shot);
+
     // Jugadores
     Player player1;
     Player player2;

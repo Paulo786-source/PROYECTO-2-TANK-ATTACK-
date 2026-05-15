@@ -18,7 +18,7 @@ void Game::handleInput() {
         int clickCol = GetMouseX() / CELL_SIZE;
         int clickRow = GetMouseY() / CELL_SIZE;
 
-        // verificar que el click esté dentro del mapa
+        // verificar que el click estÃ© dentro del mapa
         if (clickRow < 0 || clickRow >= ROWS || clickCol < 0 || clickCol >= COLS)
             return;
 
@@ -39,7 +39,7 @@ void Game::handleInput() {
         }
         else {
 
-            // verificar si clickeó sobre otro tanque del mismo jugador
+            // verificar si clickeÃ³ sobre otro tanque del mismo jugador
             bool clickedAnotherTank = false;
             for (int i = 0; i < 4; i++) {
                 Tank& tank = currentPlayer.getTank(i);
@@ -71,8 +71,11 @@ void Game::handleInput() {
                 if (map.getCell(clickRow, clickCol).type == CellType::free && !cellOccupied) {
                     int rowTank = selectedTank->getPosition().row;
                     int colTank = selectedTank->getPosition().col;
-                    Position origin = {rowTank, colTank};
+                    Position origin = { rowTank, colTank };
                     Position destination = { clickRow, clickCol };
+
+                    bulletTrail = BulletPath();
+
                     if (selectedTank->getTankType() == Tank::TankType::BFS) {
                         currentPath = Path();
                         currentPath = Pathfinding::calculatePath(map, origin, destination, true);
@@ -88,8 +91,6 @@ void Game::handleInput() {
                         map.nodeToCoords(lastNode, destRow, destCol);
                         selectedTank->setPosition({ destRow, destCol });
                     }
-                    
-                    
 
 
                     selectedTank->setSelected(false);
@@ -98,6 +99,51 @@ void Game::handleInput() {
                 }
 
             }
+        }
+    }
+
+    if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
+        if (selectedTank == nullptr) return;
+
+        int clickCol = GetMouseX() / CELL_SIZE;
+        int clickRow = GetMouseY() / CELL_SIZE;
+
+        if (clickRow < 0 || clickRow >= ROWS || clickCol < 0 || clickCol >= COLS) return;
+
+        Position origin = selectedTank->getPosition();
+        Position target = { clickRow, clickCol };
+
+        currentPath = Path();
+
+        bulletTrail = BulletPath();
+        bulletTrail = Pathfinding::calculateBulletPath(map, origin, target, player1, player2);
+        dealBulletDamage(bulletTrail);
+
+        selectedTank->setSelected(false);
+        selectedTank = nullptr;
+        currentTurn = (currentTurn == 1) ? 2 : 1;
+    }
+}
+
+void Game::dealBulletDamage(const BulletPath& shot) {
+    if (!shot.hitTank) return;
+
+    int row, col;
+    map.nodeToCoords(shot.hitTankNode, row, col);
+
+    for (int p = 0; p < 2; p++) {
+        Player& pl = (p == 0) ? player1 : player2;
+        for (int i = 0; i < 4; i++) {
+            Tank& t = pl.getTank(i);
+            if (!t.isAlive()) continue;
+            if (t.getPosition().row != row || t.getPosition().col != col) continue;
+
+            // blue/cyan reciben menos daÃ±o que red/yellow
+            Tank::TankColor c = t.getTankColor();
+            if (c == Tank::TankColor::blue || c == Tank::TankColor::cyan)
+                t.receiveDamage(25);
+            else
+                t.receiveDamage(50);
         }
     }
 }
@@ -111,6 +157,8 @@ void Game::render() {
     renderer.drawMap(map);
     renderer.drawPath(currentPath, map);
     renderer.drawTanks(player1, player2);
+    renderer.drawBulletTrail(bulletTrail, map);
+
     if (currentTurn == 1) {
         DrawText("Turno: Jugador 1", 10, 10, 20, BLUE);
     }

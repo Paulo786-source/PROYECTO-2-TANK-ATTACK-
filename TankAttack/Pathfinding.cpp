@@ -39,7 +39,7 @@ bool Pathfinding::hasLineOfSight(const Map& map, Position a, Position b) {
     if (steps == 0) return true;
 
     for (int i = 1; i <= steps; i++) {
-        // interpolar la posición en cada paso para trazar la línea
+        // interpolar la posiciÃ³n en cada paso para trazar la lÃ­nea
         // se suma 0.5f para no redondear hacia abajo
         int row = a.row + (int)((rowDiff * i) / (float)steps + 0.5f);
         int col = a.col + (int)((colDiff * i) / (float)steps + 0.5f);
@@ -155,7 +155,7 @@ Path Pathfinding::advanceUntilObstacle(const Map& map, Position origin, Position
         int row = origin.row + (int)((rowDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
         int col = origin.col + (int)((colDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
 
-        // para si se topa con un obstáculo
+        // para si se topa con un obstÃ¡culo
         if (map.getCell(row, col).type == CellType::obstacle) break;
 
         path.nodes[path.length] = map.coordsToNode(row, col);
@@ -165,7 +165,7 @@ Path Pathfinding::advanceUntilObstacle(const Map& map, Position origin, Position
 }
 
 
-// agrega las celdas de una línea recta entre dos posiciones a una ruta existente
+// agrega las celdas de una lÃ­nea recta entre dos posiciones a una ruta existente
 void Pathfinding::addSegment(const Map& map, Path& path, Position from, Position to, bool skipFirst) {
     int rowDiff = to.row - from.row;
     int colDiff = to.col - from.col;
@@ -186,14 +186,14 @@ void Pathfinding::addSegment(const Map& map, Path& path, Position from, Position
 }
 
 Path Pathfinding::randomMovement(const Map& map, Position origin, Position destination) {
-    // primero línea vista directa al destino
+    // primero lÃ­nea vista directa al destino
     if (hasLineOfSight(map, origin, destination)) {
         Path path;
         addSegment(map, path, origin, destination, false);
         return path;
     }
 
-    // si no hay línea vista entonces se elige una celda libre aleatoria dentro del radio
+    // si no hay lÃ­nea vista entonces se elige una celda libre aleatoria dentro del radio
     Position midpoint = origin;
 
     for (int attempt = 0; attempt < 10; attempt++) {
@@ -212,7 +212,7 @@ Path Pathfinding::randomMovement(const Map& map, Position origin, Position desti
         }
     }
 
-    // si no sirve, se intenta línea vista desde la intermedia al destino
+    // si no sirve, se intenta lÃ­nea vista desde la intermedia al destino
     if (hasLineOfSight(map, midpoint, destination)) {
         Path path;
         addSegment(map, path, origin, midpoint, false);
@@ -220,11 +220,11 @@ Path Pathfinding::randomMovement(const Map& map, Position origin, Position desti
         return path;
     }
 
-    // si ningún intento funcionó, se avanza hasta donde sea posible
+    // si ningÃºn intento funcionÃ³, se avanza hasta donde sea posible
     return advanceUntilObstacle(map, origin, destination);
 }
 
-// decide qué algoritmo usar según el tipo de tanque y un número aleatorio
+// decide quÃ© algoritmo usar segÃºn el tipo de tanque y un nÃºmero aleatorio
 Path Pathfinding::calculatePath(const Map& map, Position origin, Position destination, bool useBFS) {
     int probability = rand() % 100;
 
@@ -264,72 +264,72 @@ BulletPath Pathfinding::traceBulletWithBounces(const Map& map, Position origin, 
     int currentRow = origin.row;
     int currentCol = origin.col;
     int bounces = 0;
-    int steps = 0;
+    int moves = 0;
+    int maxMoves = ROWS + COLS;
+    int consecutiveBounces = 0;
 
-    // agrega posición inicial
+    // agrega posiciÃ³n inicial
     result.nodes[result.length++] = map.coordsToNode(currentRow, currentCol);
 
-    while (steps < MAX_BULLET_STEPS && bounces <= MAX_BOUNCES) {
+    while (moves < maxMoves && bounces <= MAX_BOUNCES) {
+        // si lleva muchos rebotes seguidos sin avanzar entonces estÃ¡ atascada
+        if (consecutiveBounces > 8) break;
+
         int nextRow = currentRow + dx;
         int nextCol = currentCol + dy;
 
-        // verifica los límites del mapa
         bool outRow = (nextRow < 0 || nextRow >= ROWS);
         bool outCol = (nextCol < 0 || nextCol >= COLS);
 
+        // si es esquina rebota en ambas direcciones
         if (outRow && outCol) {
-            // si es una esquina rebota en ambas direcciones
             dx = -dx;
             dy = -dy;
             bounces++;
-            steps++;
+            consecutiveBounces++;
             continue;
         }
 
+        // choca con borde horizontal, rebota en fila
         if (outRow) {
-            // si choca con borde horizontal rebota en y 
             dx = -dx;
             bounces++;
-            steps++;
+            consecutiveBounces++;
             continue;
         }
 
+        // choca con borde vertical, rebota en columna
         if (outCol) {
-            // si choca con borde vertical rebota en x
             dy = -dy;
             bounces++;
-            steps++;
+            consecutiveBounces++;
             continue;
         }
 
-        bool nextIsObstacle = (map.getCell(nextRow, nextCol).type == CellType::obstacle);
-
-        if (nextIsObstacle) {
-            // determinar tipo de rebote
-            bool blockedRow = (map.getCell(currentRow + dx, nextCol).type == CellType::obstacle || 
-                currentRow + dx < 0 || currentRow + dx >= ROWS);
-            bool blockedCol = (map.getCell(nextRow, currentCol + dy).type == CellType::obstacle ||
-                nextCol < 0 || nextCol >= COLS);
+        if (map.getCell(nextRow, nextCol).type == CellType::obstacle) {
+            // determina si la pared es horizontal, vertical o esquina
+            bool blockedRow = (currentRow + dx < 0 || currentRow + dx >= ROWS ||
+                map.getCell(currentRow + dx, currentCol).type == CellType::obstacle);
+            bool blockedCol = (currentCol + dy < 0 || currentCol + dy >= COLS ||
+                map.getCell(currentRow, currentCol + dy).type == CellType::obstacle);
 
             if (blockedRow && blockedCol) {
-                // esquina
                 dx = -dx;
                 dy = -dy;
-            } else if (blockedRow) {
-                dx = -dx;   
-            } else {
-                dy = -dy;   
             }
-
+            else if (blockedRow) {
+                dx = -dx;
+            }
+            else {
+                dy = -dy;
+            }
             bounces++;
-            steps++;
+            consecutiveBounces++;
             continue;
         }
 
-        // si la celda está libre verifica si hay un tanque
+        // si hay celda libre verifica si hay un tanque
         int nextNode = map.coordsToNode(nextRow, nextCol);
-        bool tankFound = false;
-
         for (int p = 1; p <= 2; p++) {
             Player& pl = (p == 1) ? player1 : player2;
             for (int t = 0; t < 4; t++) {
@@ -337,7 +337,6 @@ BulletPath Pathfinding::traceBulletWithBounces(const Map& map, Position origin, 
                 if (tank.isAlive() &&
                     tank.getPosition().row == nextRow &&
                     tank.getPosition().col == nextCol) {
-
                     // registrar impacto
                     result.nodes[result.length++] = nextNode;
                     result.hitTank = true;
@@ -347,11 +346,12 @@ BulletPath Pathfinding::traceBulletWithBounces(const Map& map, Position origin, 
             }
         }
 
-        // avanzar normal
+        // avanzar normal, solo aquÃ­ cuenta como movimiento real
         currentRow = nextRow;
         currentCol = nextCol;
         result.nodes[result.length++] = map.coordsToNode(currentRow, currentCol);
-        steps++;
+        moves++;
+        consecutiveBounces = 0;
     }
 
     return result;
@@ -361,7 +361,7 @@ BulletPath Pathfinding::calculateBulletPath(const Map& map, Position origin, Pos
     int dx = 0, dy = 0;
     getInitialDirection(origin, target, dx, dy);
 
-    // no hay dirección 
+    // no hay direcciÃ³n 
     if (dx == 0 && dy == 0) return BulletPath();
 
     return traceBulletWithBounces(map, origin, dx, dy, player1, player2);

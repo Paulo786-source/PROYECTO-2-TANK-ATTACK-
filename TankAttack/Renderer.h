@@ -16,10 +16,11 @@ public:
     void beginFrame();
     void endFrame();
 
+
     void drawMap(const Map& map);
+    void drawBulletTrail(const BulletPath& shot, const Map& map);
 
-    
-
+   
     // las siguientes funciones se implementan en las siguientes fases
 
     void drawTanks(Player& one, Player& two);

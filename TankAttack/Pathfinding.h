@@ -1,6 +1,7 @@
 #pragma once
 #include "Map.h"
-#include "Player.h"
+
+class Player;
 
 struct Position {
     int row;
@@ -47,7 +48,7 @@ private:
     static Path reconstructPath(const Map& map, int* parent, int originNode, int destNode);
     static bool hasLineOfSight(const Map& map, Position a, Position b);
     static void addSegment(const Map& map, Path& path, Position from, Position to, bool skipFirst);
-
+    
     // dirección del disparo
     static BulletPath traceBulletWithBounces(const Map& map, Position origin, int dx, int dy, Player& player1, Player& player2);
     static void getInitialDirection(Position origin, Position target, int& dx, int& dy);

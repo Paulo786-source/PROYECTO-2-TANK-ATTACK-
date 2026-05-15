@@ -56,10 +56,10 @@ void Renderer::drawTanks(Player& playerOne, Player& playerTwo) {
             Tank::TankColor color = tank.getTankColor();
             Color drawColor;
             switch (color) {
-                case Tank::TankColor::blue:   drawColor = BLUE;     break;
-                case Tank::TankColor::cyan:   drawColor = SKYBLUE;  break;
-                case Tank::TankColor::red:    drawColor = RED;      break;
-                case Tank::TankColor::yellow: drawColor = YELLOW;   break;
+            case Tank::TankColor::blue:   drawColor = BLUE;     break;
+            case Tank::TankColor::cyan:   drawColor = SKYBLUE;  break;
+            case Tank::TankColor::red:    drawColor = RED;      break;
+            case Tank::TankColor::yellow: drawColor = YELLOW;   break;
             }
             DrawRectangle(x, y, CELL_SIZE, CELL_SIZE, drawColor);
             if (selected) {
@@ -79,10 +79,10 @@ void Renderer::drawTanks(Player& playerOne, Player& playerTwo) {
             Tank::TankColor color2 = tank2.getTankColor();
             Color drawColor2;
             switch (color2) {
-                case Tank::TankColor::blue:   drawColor2 = BLUE;     break;
-                case Tank::TankColor::cyan:   drawColor2 = SKYBLUE;  break;
-                case Tank::TankColor::red:    drawColor2 = RED;      break;
-                case Tank::TankColor::yellow: drawColor2 = YELLOW;   break;
+            case Tank::TankColor::blue:   drawColor2 = BLUE;     break;
+            case Tank::TankColor::cyan:   drawColor2 = SKYBLUE;  break;
+            case Tank::TankColor::red:    drawColor2 = RED;      break;
+            case Tank::TankColor::yellow: drawColor2 = YELLOW;   break;
             }
             DrawRectangle(x2, y2, CELL_SIZE, CELL_SIZE, drawColor2);
             if (selected2) {
@@ -99,5 +99,15 @@ void Renderer::drawPath(const Path& path, const Map& map) {
         int drawCol;
         map.nodeToCoords(path.nodes[i], drawRow, drawCol);
         DrawRectangle(drawCol * CELL_SIZE, drawRow * CELL_SIZE, CELL_SIZE, CELL_SIZE, PURPLE);
+    }
+}
+
+void Renderer::drawBulletTrail(const BulletPath& shot, const Map& map) {
+    for (int i = 0; i < shot.length; i++) {
+        int row, col;
+        map.nodeToCoords(shot.nodes[i], row, col);
+        int x = col * CELL_SIZE + CELL_SIZE / 4;
+        int y = row * CELL_SIZE + CELL_SIZE / 4;
+        DrawRectangle(x, y, CELL_SIZE / 2, CELL_SIZE / 2, ORANGE);
     }
 }
