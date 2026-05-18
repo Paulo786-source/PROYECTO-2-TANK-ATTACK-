@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Player.h"
 #include "Pathfinding.h"
+#include "Bullet.h"
 
 
 class Game
@@ -19,8 +20,8 @@ private:
     Map map;
     Renderer renderer;
 
-    BulletPath bulletTrail;
-    void dealBulletDamage(const BulletPath& shot);
+    Bullet* currentBullet = nullptr;
+    void dealBulletDamage(const Bullet& bullet);
 
     // Jugadores
     Player player1;

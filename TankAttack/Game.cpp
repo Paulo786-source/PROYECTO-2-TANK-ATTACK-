@@ -74,7 +74,8 @@ void Game::handleInput() {
                     Position origin = { rowTank, colTank };
                     Position destination = { clickRow, clickCol };
 
-                    bulletTrail = BulletPath();
+                    delete currentBullet;
+                    currentBullet = nullptr;
 
                     if (selectedTank->getTankType() == Tank::TankType::BFS) {
                         currentPath = Path();
@@ -115,9 +116,12 @@ void Game::handleInput() {
 
         currentPath = Path();
 
-        bulletTrail = BulletPath();
-        bulletTrail = Pathfinding::calculateBulletPath(map, origin, target, player1, player2);
-        dealBulletDamage(bulletTrail);
+        delete currentBullet;
+        currentBullet = nullptr;
+
+        BulletPath trail = Pathfinding::calculateBulletPath(map, origin, target, player1, player2);
+        currentBullet = new Bullet(trail, selectedTank, false);
+        dealBulletDamage(*currentBullet);
 
         selectedTank->setSelected(false);
         selectedTank = nullptr;
@@ -125,7 +129,9 @@ void Game::handleInput() {
     }
 }
 
-void Game::dealBulletDamage(const BulletPath& shot) {
+void Game::dealBulletDamage(const Bullet& bullet) {
+    const BulletPath& shot = bullet.getBulletPath();
+
     if (!shot.hitTank) return;
 
     int row, col;
@@ -138,12 +144,19 @@ void Game::dealBulletDamage(const BulletPath& shot) {
             if (!t.isAlive()) continue;
             if (t.getPosition().row != row || t.getPosition().col != col) continue;
 
+            
             // blue/cyan reciben menos daño que red/yellow
             Tank::TankColor c = t.getTankColor();
-            if (c == Tank::TankColor::blue || c == Tank::TankColor::cyan)
-                t.receiveDamage(25);
-            else
-                t.receiveDamage(50);
+            if (bullet.isFullPower()) {
+                t.receiveDamage(100);
+            }
+            else {
+                if (c == Tank::TankColor::blue || c == Tank::TankColor::cyan)
+                    t.receiveDamage(25);
+                else
+                    t.receiveDamage(50);
+            }
+
         }
     }
 }
@@ -157,8 +170,10 @@ void Game::render() {
     renderer.drawMap(map);
     renderer.drawPath(currentPath, map);
     renderer.drawTanks(player1, player2);
-    renderer.drawBulletTrail(bulletTrail, map);
-
+    if (currentBullet != nullptr) {
+        renderer.drawBulletTrail(currentBullet->getBulletPath(), map);
+    }
+    
     if (currentTurn == 1) {
         DrawText("Turno: Jugador 1", 10, 10, 20, BLUE);
     }
