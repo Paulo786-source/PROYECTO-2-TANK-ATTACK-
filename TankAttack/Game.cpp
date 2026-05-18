@@ -180,5 +180,6 @@ void Game::render() {
     else {
         DrawText("Turno: Jugador 2", 10, 10, 20, RED);
     }
+    renderer.drawHUD(player1, player2);
     renderer.endFrame();
 }

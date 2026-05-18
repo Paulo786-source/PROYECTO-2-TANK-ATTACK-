@@ -26,7 +26,7 @@ public:
     void drawTanks(Player& one, Player& two);
     void drawPath(const Path& path, const Map& map);
     // void drawBullets();
-    // void drawHUD();
+    void drawHUD(Player& player1, Player& player2);
     // void drawPowerUps();
 
 private:

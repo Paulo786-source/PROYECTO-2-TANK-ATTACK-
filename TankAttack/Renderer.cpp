@@ -6,7 +6,7 @@
 #include "Tank.h"
 
 
-Renderer::Renderer() : windowWidth(1280), windowHeight(720) {}
+Renderer::Renderer() : windowWidth(1280), windowHeight(800) {}
 
 Renderer::~Renderer() {}
 
@@ -109,5 +109,32 @@ void Renderer::drawBulletTrail(const BulletPath& shot, const Map& map) {
         int x = col * CELL_SIZE + CELL_SIZE / 4;
         int y = row * CELL_SIZE + CELL_SIZE / 4;
         DrawRectangle(x, y, CELL_SIZE / 2, CELL_SIZE / 2, ORANGE);
+    }
+}
+
+void Renderer::drawHUD(Player& player1, Player& player2) {
+    for (int i = 0; i < 4; i++) {
+        Tank& tank = player1.getTank(i);
+        int health = tank.getHealth();
+        const char* colorName;
+        switch (tank.getTankColor()) {
+            case Tank::TankColor::blue:   colorName = "Azul";    break;
+            case Tank::TankColor::red:    colorName = "Rojo";    break;
+            default:                      colorName = "?";       break;
+        }
+        int x = i * 150 + 10;
+        DrawText(TextFormat("%s: %d", colorName, health), x, 715, 20, BLACK);
+    }
+    for (int i = 0; i < 4; i++) {
+        Tank& tank2 = player2.getTank(i);
+        int health2 = tank2.getHealth();
+        const char* colorName2;
+        switch (tank2.getTankColor()) {
+            case Tank::TankColor::cyan:   colorName2 = "Celeste";    break;
+            case Tank::TankColor::yellow:    colorName2 = "Amarillo";    break;
+            default:                      colorName2 = "?";       break;
+        }
+        int x = i * 165 + 650;
+        DrawText(TextFormat("%s: %d", colorName2, health2), x, 715, 20, BLACK);
     }
 }
