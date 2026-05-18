@@ -28,5 +28,7 @@ public:
     PowerUp usePowerUp();
     bool hasPowerUps() const;
     PowerUp nextPowerUp() const;
+
+    const PowerUpQueue& getPowerUpQueue() const;
 };
 

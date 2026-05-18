@@ -2,6 +2,18 @@
 
 Game::Game() : player1(1), player2(2) {
     renderer.initialize();
+
+    // power-ups de prueba - eliminar cuando Dilana implemente la generación aleatoria
+    player1.addPowerUp({ PowerUpType::doubleTurn });
+    player1.addPowerUp({ PowerUpType::attackPower });
+    player1.addPowerUp({ PowerUpType::movePrecision });
+    player1.addPowerUp({ PowerUpType::doubleTurn });
+    player1.addPowerUp({ PowerUpType::attackPower });
+    player1.addPowerUp({ PowerUpType::movePrecision });
+    player1.addPowerUp({ PowerUpType::doubleTurn });
+    player1.addPowerUp({ PowerUpType::attackPower });
+    player1.addPowerUp({ PowerUpType::movePrecision });
+
 }
 
 void Game::run() {
@@ -140,6 +152,12 @@ void Game::handleInput() {
         Player& currentPlayer = (currentTurn == 1) ? player1 : player2;
         if (currentPlayer.hasPowerUps()) {
             activePowerUp = currentPlayer.usePowerUp();
+            switch (activePowerUp.type) {
+            case PowerUpType::doubleTurn:      powerUpMessage = "Power-up: Doble Turno";           break;
+            case PowerUpType::movePrecision:   powerUpMessage = "Power-up: Precision de Movimiento"; break;
+            case PowerUpType::attackPower:     powerUpMessage = "Power-up: Poder de Ataque";        break;
+            default:                           powerUpMessage = "";                                  break;
+            }
             hasPendingPowerUp = true;
             currentTurn = (currentTurn == 1) ? 2 : 1;
         }
@@ -198,5 +216,7 @@ void Game::render() {
         DrawText("Turno: Jugador 2", 10, 10, 20, RED);
     }
     renderer.drawHUD(player1, player2);
+    renderer.drawPowerUps(player1, player2);
+    DrawText(powerUpMessage, 10, 778, 16, BLACK);
     renderer.endFrame();
 }

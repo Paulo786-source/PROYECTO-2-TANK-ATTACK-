@@ -138,3 +138,47 @@ void Renderer::drawHUD(Player& player1, Player& player2) {
         DrawText(TextFormat("%s: %d", colorName2, health2), x, 715, 20, BLACK);
     }
 }
+
+void Renderer::drawPowerUps(Player& player1, Player& player2) {
+    PowerUpQueue player1Queue = player1.getPowerUpQueue();
+    int player1QueueCount = player1Queue.getSize();
+
+    for (int i = 0; i < player1QueueCount; i++) {
+        PowerUp powerUp = player1Queue.getItem(i);
+        Color powerUpColor;
+        switch (powerUp.type) {
+            case PowerUpType::doubleTurn:      powerUpColor = GREEN;   break;
+            case PowerUpType::movePrecision:   powerUpColor = ORANGE;  break;
+            //case PowerUpType::attackPrecision: powerUpColor = PURPLE;  break;
+            case PowerUpType::attackPower:     powerUpColor = RED;     break;
+            default:                           powerUpColor = WHITE;   break;
+        }
+        int x = i * 20 + 10;
+        DrawRectangle(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, powerUpColor);
+
+        if (i == 0) {
+            DrawRectangleLines(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, BLACK);
+        }
+    }
+
+    PowerUpQueue player2Queue = player2.getPowerUpQueue();
+    int player2QueueCount = player2Queue.getSize();
+
+    for (int i = 0; i < player2QueueCount; i++) {
+        PowerUp powerUp = player2Queue.getItem(i);
+        Color powerUpColor;
+        switch (powerUp.type) {
+        case PowerUpType::doubleTurn:      powerUpColor = GREEN;   break;
+        case PowerUpType::movePrecision:   powerUpColor = ORANGE;  break;
+            //case PowerUpType::attackPrecision: powerUpColor = PURPLE;  break;
+        case PowerUpType::attackPower:     powerUpColor = RED;     break;
+        default:                           powerUpColor = WHITE;   break;
+        }
+        int x = 650 + (i * 20 + 10);
+        DrawRectangle(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, powerUpColor);
+
+        if (i == 0) {
+            DrawRectangleLines(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, BLACK);
+        }
+    }
+}

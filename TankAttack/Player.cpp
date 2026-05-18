@@ -60,3 +60,7 @@ bool Player::hasPowerUps() const {
 PowerUp Player::nextPowerUp() const {
 	return powerUps.peek();
 }
+
+const PowerUpQueue& Player::getPowerUpQueue() const {
+	return powerUps;
+}

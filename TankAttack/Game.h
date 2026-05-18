@@ -14,6 +14,7 @@ public:
     void handleInput();
     void render();
     void update();
+    void dealBulletDamage(const Bullet& bullet);
 
 
 private:
@@ -21,7 +22,6 @@ private:
     Renderer renderer;
 
     Bullet* currentBullet = nullptr;
-    void dealBulletDamage(const Bullet& bullet);
 
     // Jugadores
     Player player1;
@@ -35,6 +35,8 @@ private:
 
     PowerUp activePowerUp;
     bool hasPendingPowerUp = false;
+
+    const char* powerUpMessage = "";
 
 };
 

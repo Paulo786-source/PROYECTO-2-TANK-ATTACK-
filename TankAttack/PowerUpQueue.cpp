@@ -30,3 +30,12 @@ bool PowerUpQueue::isEmpty() const {
 int PowerUpQueue::size() const {
     return count;
 }
+
+PowerUp PowerUpQueue::getItem(int index) const {
+    int item = (front + index) % MAX_POWERUPS;
+    return items[item];
+}
+
+int PowerUpQueue::getSize() const {
+    return count;
+}

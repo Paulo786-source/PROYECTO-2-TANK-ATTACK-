@@ -25,6 +25,8 @@ public:
     PowerUp peek() const;
     bool isEmpty() const;
     int size() const;
+    PowerUp getItem(int index) const;
+    int getSize() const;
 
 private:
     PowerUp items[MAX_POWERUPS];

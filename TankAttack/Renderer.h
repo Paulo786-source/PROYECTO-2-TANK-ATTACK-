@@ -27,7 +27,7 @@ public:
     void drawPath(const Path& path, const Map& map);
     // void drawBullets();
     void drawHUD(Player& player1, Player& player2);
-    // void drawPowerUps();
+    void drawPowerUps(Player& player1, Player& player2);
 
 private:
     int windowWidth;
