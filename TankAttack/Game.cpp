@@ -89,14 +89,19 @@ void Game::handleInput() {
                     delete currentBullet;
                     currentBullet = nullptr;
 
-                    if (selectedTank->getTankType() == Tank::TankType::BFS) {
-                        currentPath = Path();
-                        currentPath = Pathfinding::calculatePath(map, origin, destination, true);
+                    int bfsProb = 50;
+                    int dijkstraProb = 80;
+
+                    // si hay power-up de precisión activo, aumenta la probabilidad al 90%
+                    if (hasPendingPowerUp && activePowerUp.type == PowerUpType::movePrecision) {
+                        bfsProb = 90;
+                        dijkstraProb = 90;
                     }
-                    else {
-                        currentPath = Path();
-                        currentPath = Pathfinding::calculatePath(map, origin, destination, false);
-                    }
+                    hasPendingPowerUp = false;
+
+                    currentPath = Path();
+                    currentPath = Pathfinding::calculatePath(map, origin, destination,
+                        selectedTank->getTankType() == Tank::TankType::BFS, bfsProb, dijkstraProb);
                     if (currentPath.length > 0) {
                         int lastNode = currentPath.nodes[currentPath.length - 1];
                         int destRow;

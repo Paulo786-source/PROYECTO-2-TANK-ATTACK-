@@ -225,11 +225,11 @@ Path Pathfinding::randomMovement(const Map& map, Position origin, Position desti
 }
 
 // decide qué algoritmo usar según el tipo de tanque y un número aleatorio
-Path Pathfinding::calculatePath(const Map& map, Position origin, Position destination, bool useBFS) {
+Path Pathfinding::calculatePath(const Map& map, Position origin, Position destination, bool useBFS, int bfsProb, int dijkstraProb) {
     int probability = rand() % 100;
 
     if (useBFS) {
-        if (probability < 50) {
+        if (probability < bfsProb) {
             return BFS(map, origin, destination);
         }
         else {
@@ -237,7 +237,7 @@ Path Pathfinding::calculatePath(const Map& map, Position origin, Position destin
         }
     }
     else {
-        if (probability < 80) {
+        if (probability < dijkstraProb) {
             return Dijkstra(map, origin, destination);
         }
         else {

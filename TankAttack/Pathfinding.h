@@ -36,7 +36,7 @@ class Pathfinding {
 public:
     // tanques celeste/azul : 50 % BFS, 50 % aleatorio
     // tanques rojo / amarillo : 80 % Dijkstra, 20 % aleatorio
-    static Path calculatePath(const Map& map, Position origin, Position destination, bool useBFS);
+    static Path calculatePath(const Map& map, Position origin, Position destination, bool useBFS, int bfsProb = 50, int dijkstraProb = 80);
 
     static BulletPath calculateBulletPath(const Map& map, Position origin, Position target, Player& player1, Player& player2);
 
