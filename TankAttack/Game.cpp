@@ -120,12 +120,29 @@ void Game::handleInput() {
         currentBullet = nullptr;
 
         BulletPath trail = Pathfinding::calculateBulletPath(map, origin, target, player1, player2);
-        currentBullet = new Bullet(trail, selectedTank, false);
-        dealBulletDamage(*currentBullet);
+        if (hasPendingPowerUp && activePowerUp.type == PowerUpType::attackPower) {
+            currentBullet = new Bullet(trail, selectedTank, true);
+            dealBulletDamage(*currentBullet);
+        }
+        else {
+            currentBullet = new Bullet(trail, selectedTank, false);
+            dealBulletDamage(*currentBullet);
+        }
+
+        hasPendingPowerUp = false;
 
         selectedTank->setSelected(false);
         selectedTank = nullptr;
         currentTurn = (currentTurn == 1) ? 2 : 1;
+    }
+
+    if (IsKeyPressed(KEY_LEFT_SHIFT)) {
+        Player& currentPlayer = (currentTurn == 1) ? player1 : player2;
+        if (currentPlayer.hasPowerUps()) {
+            activePowerUp = currentPlayer.usePowerUp();
+            hasPendingPowerUp = true;
+            currentTurn = (currentTurn == 1) ? 2 : 1;
+        }
     }
 }
 

@@ -33,5 +33,8 @@ private:
 
     Path currentPath;
 
+    PowerUp activePowerUp;
+    bool hasPendingPowerUp = false;
+
 };
 
