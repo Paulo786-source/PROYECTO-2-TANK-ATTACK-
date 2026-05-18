@@ -136,6 +136,7 @@
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Pathfinding.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PowerUpQueue.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Renderer.h" />
     <ClCompile Include="Tank.cpp" />
@@ -148,6 +149,7 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="Pathfinding.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="PowerUpQueue.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Tank.h" />
   </ItemGroup>

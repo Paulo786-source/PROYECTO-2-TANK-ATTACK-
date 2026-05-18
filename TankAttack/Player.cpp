@@ -1,5 +1,6 @@
 #include "Player.h"
 #include "Tank.h"
+#include "PowerUpQueue.h"
 
 
 Player::Player(int playerNumber) {
@@ -40,4 +41,22 @@ bool Player::hasTanks() const {
 	}
 
 	return false;
+}
+
+void Player::addPowerUp(PowerUp p) {
+	powerUps.enqueue(p);
+}
+
+// saca y retorna el primero de la cola
+PowerUp Player::usePowerUp() {
+	return powerUps.dequeue();
+}
+
+bool Player::hasPowerUps() const {
+	return !powerUps.isEmpty();
+}
+
+// muestra cuál es el siguiente sin consumirlo
+PowerUp Player::nextPowerUp() const {
+	return powerUps.peek();
 }
