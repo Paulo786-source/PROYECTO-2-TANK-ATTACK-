@@ -40,6 +40,9 @@ public:
 
     static BulletPath calculateBulletPath(const Map& map, Position origin, Position target, Player& player1, Player& player2);
 
+    static BulletPath calculateprecisionShot(const Map& map, Position origin, Position target,
+        Player& player1, Player& player2);
+
 private:
     static Path advanceUntilObstacle(const Map& map, Position origin, Position destination);
     static Path BFS(const Map& map, Position origin, Position destination);
@@ -52,4 +55,9 @@ private:
     // dirección del disparo
     static BulletPath traceBulletWithBounces(const Map& map, Position origin, int dx, int dy, Player& player1, Player& player2);
     static void getInitialDirection(Position origin, Position target, int& dx, int& dy);
+
+
+    static BulletPath precisionShot(const Map& map, Position origin, Position target,
+        Player& player1, Player& player2);
+    static int heuristic(Position a, Position b);
 };

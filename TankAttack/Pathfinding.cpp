@@ -113,29 +113,29 @@ Path Pathfinding::Dijkstra(const Map& map, Position origin, Position destination
 
     for (int iter = 0; iter < totalNodes; iter++) {
         // buscar el nodo no visitado con menor distancia acumulada
-        int u = -1;
+        int current= -1;
         for (int i = 0; i < totalNodes; i++) {
-            if (!visited[i] && (u == -1 || distance[i] < distance[u])) {
-                u = i;
+            if (!visited[i] && (current== -1 || distance[i] < distance[current])) {
+                current= i;
             }
         }
 
-        if (u == -1 || distance[u] == 999999) break; // no quedan nodos alcanzables
-        if (u == destNode) break;
+        if (current== -1 || distance[current] == 999999) break; // no quedan nodos alcanzables
+        if (current== destNode) break;
 
-        visited[u] = true;
+        visited[current] = true;
 
         int neighbors[4];
         int count = 0;
-        map.getGraph()->getNeighbors(u, neighbors, count);
+        map.getGraph()->getNeighbors(current, neighbors, count);
 
         for (int i = 0; i < count; i++) {
             int neighbor = neighbors[i];
-            int newDistance = distance[u] + 1; // cada celda tiene peso 1
+            int newDistance = distance[current] + 1; // cada celda tiene peso 1
 
             if (newDistance < distance[neighbor]) {
                 distance[neighbor] = newDistance;
-                parent[neighbor] = u;
+                parent[neighbor] = current;
             }
         }
     }
@@ -365,4 +365,120 @@ BulletPath Pathfinding::calculateBulletPath(const Map& map, Position origin, Pos
     if (dx == 0 && dy == 0) return BulletPath();
 
     return traceBulletWithBounces(map, origin, dx, dy, player1, player2);
+}
+
+// A* para el disparo de precisión
+int Pathfinding::heuristic(Position a, Position b) {
+    return abs(a.row - b.row) + abs(a.col - b.col);
+}
+
+BulletPath Pathfinding:: precisionShot(const Map& map, Position origin,
+    Position target,
+    Player& player1, Player& player2) {
+    int totalNodes = ROWS * COLS;
+    int originNode = map.coordsToNode(origin.row, origin.col);
+    int destNode = map.coordsToNode(target.row, target.col);
+
+    static int gCost[ROWS * COLS];
+    static int fCost[ROWS * COLS];
+    static int parent[ROWS * COLS];
+    static bool visited[ROWS * COLS];
+    static bool inQueue[ROWS * COLS];
+
+    for (int i = 0; i < totalNodes; i++) {
+        gCost[i] = 999999;
+        fCost[i] = 999999;
+        parent[i] = -1;
+        visited[i] = false;
+        inQueue[i] = false;
+    }
+
+    gCost[originNode] = 0;
+
+    // convertir originNode a coordenadas para calcular h
+    Position originPos = origin;
+    fCost[originNode] = heuristic(originPos, target);
+    inQueue[originNode] = true;
+
+    for (int iter = 0; iter < totalNodes; iter++) {
+        // buscar el nodo con menor fCost
+        int current= -1;
+        for (int i = 0; i < totalNodes; i++) {
+            if (inQueue[i] && !visited[i]) {
+                if (current== -1 || fCost[i] < fCost[current]) {
+                    current= i;
+                }
+            }
+        }
+
+        if (current== -1) break;  // no hay camino
+        if (current== destNode) break;   
+
+        visited[current] = true;
+        inQueue[current] = false;
+
+        int neighbors[4];
+        int count = 0;
+        map.getGraph()->getNeighbors(current, neighbors, count);
+
+        for (int i = 0; i < count; i++) {
+            int neighbor = neighbors[i];
+            if (visited[neighbor]) continue;
+
+            int tentativeG = gCost[current] + 1;  // el peso g es igual que en Dijkstra
+
+            if (tentativeG < gCost[neighbor]) {
+                parent[neighbor] = current;
+                gCost[neighbor] = tentativeG;
+
+                // reconstruir position del vecino para calcular h
+                int nRow, nCol;
+                map.nodeToCoords(neighbor, nRow, nCol);
+                Position neighborPos = { nRow, nCol };
+
+                fCost[neighbor] = tentativeG + heuristic(neighborPos, target);
+                inQueue[neighbor] = true;
+            }
+        }
+    }
+
+    // no se alcanzó el destino
+    if (gCost[destNode] == 999999) return BulletPath();
+
+    Path basePath = reconstructPath(map, parent, originNode, destNode);
+
+    // copiar nodo por nodo a BulletPath
+    BulletPath result;
+    for (int i = 0; i < basePath.length && result.length < MAX_BULLET_STEPS; i++) {
+        int node = basePath.nodes[i];
+        result.nodes[result.length++] = node;
+
+        if (i == 0) continue; // para que no se pegue a sí mismo quien dispara
+
+        // verificar si hay tanque en el nodo
+        int nRow, nCol;
+        map.nodeToCoords(node, nRow, nCol);
+
+        for (int p = 1; p <= 2; p++) {
+            Player& pl = (p == 1) ? player1 : player2;
+            for (int t = 0; t < 4; t++) {
+                Tank& tank = pl.getTank(t);
+                if (tank.isAlive() &&
+                    tank.getPosition().row == nRow &&
+                    tank.getPosition().col == nCol) {
+                    result.hitTank = true;
+                    result.hitTankNode = node;
+                    return result;
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+BulletPath Pathfinding::calculateprecisionShot(const Map& map, Position origin,
+    Position target,
+    Player& player1, Player& player2) {
+    return precisionShot(map, origin, target, player1, player2);
 }
