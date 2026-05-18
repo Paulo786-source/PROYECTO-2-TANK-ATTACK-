@@ -346,6 +346,22 @@ BulletPath Pathfinding::traceBulletWithBounces(const Map& map, Position origin, 
             }
         }
 
+        // si va diagonal y hay paredes en ambos lados, rebota en esquina
+        if (dx != 0 && dy != 0) {
+            bool blockedRow = (currentRow + dx < 0 || currentRow + dx >= ROWS ||
+                map.getCell(currentRow + dx, currentCol).type == CellType::obstacle);
+            bool blockedCol = (currentCol + dy < 0 || currentCol + dy >= COLS ||
+                map.getCell(currentRow, currentCol + dy).type == CellType::obstacle);
+
+            if (blockedRow && blockedCol) {
+                dx = -dx;
+                dy = -dy;
+                bounces++;
+                consecutiveBounces++;
+                continue;
+            }
+        }
+
         // avanzar normal, solo aquí cuenta como movimiento real
         currentRow = nextRow;
         currentCol = nextCol;
