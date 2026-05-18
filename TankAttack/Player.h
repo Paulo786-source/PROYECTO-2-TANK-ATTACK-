@@ -30,5 +30,7 @@ public:
     PowerUp nextPowerUp() const;
 
     const PowerUpQueue& getPowerUpQueue() const;
+
+    int getPowerUpCount() const;
 };
 

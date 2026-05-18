@@ -64,3 +64,7 @@ PowerUp Player::nextPowerUp() const {
 const PowerUpQueue& Player::getPowerUpQueue() const {
 	return powerUps;
 }
+
+int Player::getPowerUpCount() const {
+	return powerUps.size();
+}

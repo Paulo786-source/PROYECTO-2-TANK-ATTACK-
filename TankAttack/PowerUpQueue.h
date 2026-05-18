@@ -4,6 +4,7 @@
 enum class PowerUpType {
     doubleTurn,      // los siguientes dos turnos son del mismo jugador
     movePrecision,   // BFS/Dijkstra con 90% de probabilidad
+    attackPrecision, // la bala sigue A* hacia el objetivo
     attackPower      // bala hace 100% de daño
 };
 

@@ -129,7 +129,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="main.cpp" />
@@ -138,11 +137,11 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PowerUpQueue.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="Renderer.h" />
     <ClCompile Include="Tank.cpp" />
+    <ClCompile Include="Bullet.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Bullet.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="Cell.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Graph.h" />
@@ -152,6 +151,7 @@
     <ClInclude Include="PowerUpQueue.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Tank.h" />
+    <ClInclude Include="Bullet.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Sonidos\boing.ogg" />

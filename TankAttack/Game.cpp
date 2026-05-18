@@ -1,19 +1,8 @@
 #include "Game.h"
+#include <cstdlib>
 
 Game::Game() : player1(1), player2(2), activePowerUp({ PowerUpType::doubleTurn }) {
     renderer.initialize();
-
-    // power-ups de prueba - eliminar cuando Dilana implemente la generación aleatoria
-    player1.addPowerUp({ PowerUpType::doubleTurn });
-    player1.addPowerUp({ PowerUpType::attackPower });
-    player1.addPowerUp({ PowerUpType::movePrecision });
-    player1.addPowerUp({ PowerUpType::doubleTurn });
-    player1.addPowerUp({ PowerUpType::attackPower });
-    player1.addPowerUp({ PowerUpType::movePrecision });
-    player1.addPowerUp({ PowerUpType::doubleTurn });
-    player1.addPowerUp({ PowerUpType::attackPower });
-    player1.addPowerUp({ PowerUpType::movePrecision });
-
 }
 
 void Game::run() {
@@ -136,7 +125,16 @@ void Game::handleInput() {
         delete currentBullet;
         currentBullet = nullptr;
 
-        BulletPath trail = Pathfinding::calculateBulletPath(map, origin, target, player1, player2);
+        BulletPath trail;
+
+        // para precisión de ataque la bala sigue A* hacia el objetivo
+        if (hasPendingPowerUp && activePowerUp.type == PowerUpType::attackPrecision) {
+            trail = Pathfinding::calculateprecisionShot(map, origin, target, player1, player2);
+        }
+        else {
+            trail = Pathfinding::calculateBulletPath(map, origin, target, player1, player2);
+        }
+
         if (hasPendingPowerUp && activePowerUp.type == PowerUpType::attackPower) {
             currentBullet = new Bullet(trail, selectedTank, true);
             dealBulletDamage(*currentBullet);
@@ -162,6 +160,7 @@ void Game::handleInput() {
             case PowerUpType::movePrecision:   powerUpMessage = "Power-up: Precision de Movimiento"; break;
             case PowerUpType::attackPower:     powerUpMessage = "Power-up: Poder de Ataque";        break;
             default:                           powerUpMessage = "";                                  break;
+            case PowerUpType::attackPrecision: powerUpMessage = "Power-up: Precision de Ataque"; break;
             }
             if (activePowerUp.type == PowerUpType::doubleTurn) {
                 extraTurns = 2;
@@ -231,10 +230,24 @@ void Game::render() {
 
 void Game::nextTurn() {
     if (extraTurns > 0) {
-        // el mismo jugador sigue
         extraTurns--;
     }
     else {
         currentTurn = (currentTurn == 1) ? 2 : 1;
+    }
+    randomPowerUp();
+}
+
+void Game::randomPowerUp() {
+    for (int p = 1; p <= 2; p++) {
+        Player& player = (p == 1) ? player1 : player2;
+
+        if (rand() % 4 != 0) continue; // 25% por jugador por turno
+
+        // no acumular muchos
+        if (player.getPowerUpCount() >= MAX_POWERUPS) continue;
+
+        PowerUpType type = (PowerUpType)(rand() % 4);
+        player.addPowerUp({ type });
     }
 }

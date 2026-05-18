@@ -40,5 +40,7 @@ private:
 
     int extraTurns = 0; // por power-up doble turno
     void nextTurn();
+
+    void randomPowerUp();
 };
 
