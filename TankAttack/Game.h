@@ -33,10 +33,12 @@ private:
 
     Path currentPath;
 
-    PowerUp activePowerUp;
+    PowerUp activePowerUp = { PowerUpType::doubleTurn };
     bool hasPendingPowerUp = false;
 
     const char* powerUpMessage = "";
 
+    int extraTurns = 0; // por power-up doble turno
+    void nextTurn();
 };
 

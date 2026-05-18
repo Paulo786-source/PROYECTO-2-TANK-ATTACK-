@@ -1,6 +1,6 @@
 #include "Game.h"
 
-Game::Game() : player1(1), player2(2) {
+Game::Game() : player1(1), player2(2), activePowerUp({ PowerUpType::doubleTurn }) {
     renderer.initialize();
 
     // power-ups de prueba - eliminar cuando Dilana implemente la generación aleatoria
@@ -108,7 +108,7 @@ void Game::handleInput() {
 
                     selectedTank->setSelected(false);
                     selectedTank = nullptr;
-                    currentTurn = (currentTurn == 1) ? 2 : 1;
+                    nextTurn();
                 }
 
             }
@@ -158,8 +158,11 @@ void Game::handleInput() {
             case PowerUpType::attackPower:     powerUpMessage = "Power-up: Poder de Ataque";        break;
             default:                           powerUpMessage = "";                                  break;
             }
-            hasPendingPowerUp = true;
-            currentTurn = (currentTurn == 1) ? 2 : 1;
+            if (activePowerUp.type == PowerUpType::doubleTurn) {
+                extraTurns = 2;
+                hasPendingPowerUp = false;
+            }
+            nextTurn();
         }
     }
 }
@@ -219,4 +222,14 @@ void Game::render() {
     renderer.drawPowerUps(player1, player2);
     DrawText(powerUpMessage, 10, 778, 16, BLACK);
     renderer.endFrame();
+}
+
+void Game::nextTurn() {
+    if (extraTurns > 0) {
+        // el mismo jugador sigue
+        extraTurns--;
+    }
+    else {
+        currentTurn = (currentTurn == 1) ? 2 : 1;
+    }
 }
