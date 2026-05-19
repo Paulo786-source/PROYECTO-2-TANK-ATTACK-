@@ -38,7 +38,8 @@ private:
     PowerUp activePowerUp = { PowerUpType::doubleTurn };
     bool hasPendingPowerUp = false;
 
-    const char* powerUpMessage = "";
+    const char* powerUpMessage1 = "";
+    const char* powerUpMessage2 = "";
 
     int extraTurns = 0; // por power-up doble turno
 

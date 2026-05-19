@@ -149,7 +149,7 @@ void Renderer::drawPowerUps(Player& player1, Player& player2) {
         switch (powerUp.type) {
             case PowerUpType::doubleTurn:      powerUpColor = GREEN;   break;
             case PowerUpType::movePrecision:   powerUpColor = ORANGE;  break;
-            //case PowerUpType::attackPrecision: powerUpColor = PURPLE;  break;
+            case PowerUpType::attackPrecision: powerUpColor = PURPLE;  break;
             case PowerUpType::attackPower:     powerUpColor = RED;     break;
             default:                           powerUpColor = WHITE;   break;
         }

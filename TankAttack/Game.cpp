@@ -136,6 +136,8 @@ void Game::handleInput() {
                     selectedTank->setSelected(false);
                     selectedTank = nullptr;
                     // audio.playTankMove();
+                    if (currentTurn == 1) powerUpMessage1 = "";
+                    else                  powerUpMessage2 = "";
                     nextTurn();
                 }
             }
@@ -183,6 +185,8 @@ void Game::handleInput() {
 
         selectedTank->setSelected(false);
         selectedTank = nullptr;
+        if (currentTurn == 1) powerUpMessage1 = "";
+        else                  powerUpMessage2 = "";
         currentTurn = (currentTurn == 1) ? 2 : 1;
         audio.playTurnChange();
     }
@@ -192,16 +196,25 @@ void Game::handleInput() {
         if (currentPlayer.hasPowerUps()) {
             activePowerUp = currentPlayer.usePowerUp();
             audio.playPowerUpActivate();
+
+            const char* message = "";
             switch (activePowerUp.type) {
-            case PowerUpType::doubleTurn:      powerUpMessage = "Power-up: Doble Turno";           break;
-            case PowerUpType::movePrecision:   powerUpMessage = "Power-up: Precision de Movimiento"; break;
-            case PowerUpType::attackPower:     powerUpMessage = "Power-up: Poder de Ataque";        break;
-            case PowerUpType::attackPrecision: powerUpMessage = "Power-up: Precision de Ataque";    break;
-            default:                           powerUpMessage = "";                                  break;
+            case PowerUpType::doubleTurn:      message = "Power-up: Doble Turno";             break;
+            case PowerUpType::movePrecision:   message = "Power-up: Precision de Movimiento"; break;
+            case PowerUpType::attackPower:     message = "Power-up: Poder de Ataque";         break;
+            case PowerUpType::attackPrecision: message = "Power-up: Precision de Ataque";     break;
+            default:                           message = "";                                   break;
             }
+
+            if (currentTurn == 1) powerUpMessage1 = message;
+            else                  powerUpMessage2 = message;
+
             if (activePowerUp.type == PowerUpType::doubleTurn) {
                 extraTurns = 2;
                 hasPendingPowerUp = false;
+            }
+            else {
+                hasPendingPowerUp = true;
             }
             nextTurn();
         }
@@ -268,7 +281,8 @@ void Game::render() {
     }
     renderer.drawHUD(player1, player2);
     renderer.drawPowerUps(player1, player2);
-    DrawText(powerUpMessage, 10, 778, 16, BLACK);
+    DrawText(powerUpMessage1, 10, 778, 16, BLACK);
+    DrawText(powerUpMessage2, 650, 778, 16, BLACK);
 
     // temporizador
     if (!gameOver) {
@@ -350,7 +364,7 @@ void Game::checkEliminationWin() {
         result = GameResult::Player1Wins;
     }
 
-    void stopBackgroundMusic();
+    audio.stopBackgroundMusic();
     audio.playResults();
     gameOver = true;
 }
@@ -368,7 +382,7 @@ void Game::checkTimeWin() {
     else if (p2Count > p1Count) result = GameResult::Player2Wins;
     else                        result = GameResult::Draw;
 
-    void stopBackgroundMusic();
+    audio.stopBackgroundMusic();
     audio.playResults();
     gameOver = true;
 }
