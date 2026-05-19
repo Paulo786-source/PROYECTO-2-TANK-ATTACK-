@@ -3,10 +3,13 @@
 
 Game::Game() : player1(1), player2(2), activePowerUp({ PowerUpType::doubleTurn }) {
     renderer.initialize();
+    audio.initialize();
+    audio.startBackgroundMusic();
 }
 
 void Game::run() {
     while (renderer.windowOpen()) {
+        audio.update();
         handleInput();
         if (!gameOver) {
             update();
@@ -21,6 +24,7 @@ void Game::handleInput() {
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             int mx = GetMouseX(), my = GetMouseY();
             if (mx >= 565 && mx <= 715 && my >= 430 && my <= 480) {
+                audio.playButtonClick();
                 renderer.close();
             }
         }
@@ -45,6 +49,7 @@ void Game::handleInput() {
                     tank.getPosition().row == clickRow &&
                     tank.getPosition().col == clickCol) {
                     tank.setSelected(true);
+                    audio.playTankSelect();
                     selectedTank = &tank;
                     break;
                 }
@@ -130,6 +135,7 @@ void Game::handleInput() {
 
                     selectedTank->setSelected(false);
                     selectedTank = nullptr;
+                    // audio.playTankMove();
                     nextTurn();
                 }
             }
@@ -164,10 +170,12 @@ void Game::handleInput() {
 
         if (hasPendingPowerUp && activePowerUp.type == PowerUpType::attackPower) {
             currentBullet = new Bullet(trail, selectedTank, true);
+            audio.playShot();
             dealBulletDamage(*currentBullet);
         }
         else {
             currentBullet = new Bullet(trail, selectedTank, false);
+            audio.playShot();
             dealBulletDamage(*currentBullet);
         }
 
@@ -176,12 +184,14 @@ void Game::handleInput() {
         selectedTank->setSelected(false);
         selectedTank = nullptr;
         currentTurn = (currentTurn == 1) ? 2 : 1;
+        audio.playTurnChange();
     }
 
     if (IsKeyPressed(KEY_LEFT_SHIFT)) {
         Player& currentPlayer = (currentTurn == 1) ? player1 : player2;
         if (currentPlayer.hasPowerUps()) {
             activePowerUp = currentPlayer.usePowerUp();
+            audio.playPowerUpActivate();
             switch (activePowerUp.type) {
             case PowerUpType::doubleTurn:      powerUpMessage = "Power-up: Doble Turno";           break;
             case PowerUpType::movePrecision:   powerUpMessage = "Power-up: Precision de Movimiento"; break;
@@ -198,6 +208,7 @@ void Game::handleInput() {
     }
 }
 
+// blue/cyan reciben menos daño que red/yellow
 void Game::dealBulletDamage(const Bullet& bullet) {
     const BulletPath& shot = bullet.getBulletPath();
 
@@ -213,8 +224,6 @@ void Game::dealBulletDamage(const Bullet& bullet) {
             if (!t.isAlive()) continue;
             if (t.getPosition().row != row || t.getPosition().col != col) continue;
 
-            
-            // blue/cyan reciben menos daño que red/yellow
             Tank::TankColor c = t.getTankColor();
             if (bullet.isFullPower()) {
                 t.receiveDamage(100);
@@ -226,6 +235,8 @@ void Game::dealBulletDamage(const Bullet& bullet) {
                     t.receiveDamage(50);
             }
 
+            audio.playHit();
+            if (!t.isAlive()) audio.playExplosion();
         }
     }
 }
@@ -248,7 +259,7 @@ void Game::render() {
     if (currentBullet != nullptr) {
         renderer.drawBulletTrail(currentBullet->getBulletPath(), map);
     }
-    
+
     if (currentTurn == 1) {
         DrawText("Turno: Jugador 1", 10, 10, 20, BLUE);
     }
@@ -301,6 +312,7 @@ void Game::nextTurn() {
     }
     else {
         currentTurn = (currentTurn == 1) ? 2 : 1;
+        audio.playTurnChange();
     }
     randomPowerUp();
 }
@@ -316,6 +328,7 @@ void Game::randomPowerUp() {
 
         PowerUpType type = (PowerUpType)(rand() % 4);
         player.addPowerUp({ type });
+        audio.playPowerUpPickup();
     }
 }
 
@@ -337,6 +350,8 @@ void Game::checkEliminationWin() {
         result = GameResult::Player1Wins;
     }
 
+    void stopBackgroundMusic();
+    audio.playResults();
     gameOver = true;
 }
 
@@ -353,5 +368,7 @@ void Game::checkTimeWin() {
     else if (p2Count > p1Count) result = GameResult::Player2Wins;
     else                        result = GameResult::Draw;
 
+    void stopBackgroundMusic();
+    audio.playResults();
     gameOver = true;
 }

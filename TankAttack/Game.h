@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "Pathfinding.h"
 #include "Bullet.h"
+#include "AudioManager.h"
 
 enum class GameResult { None, Player1Wins, Player2Wins, Draw };
 
@@ -44,6 +45,8 @@ private:
     bool gameOver = false;
     float timeRemaining = 300.0f; // 5 minutos en segundos
     bool timeUp = false;
+
+    AudioManager audio;
 
     GameResult result = GameResult::None;
 
