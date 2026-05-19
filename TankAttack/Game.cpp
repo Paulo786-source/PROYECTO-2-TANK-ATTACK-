@@ -223,7 +223,13 @@ void Game::dealBulletDamage(const Bullet& bullet) {
 }
 
 void Game::update() {
+    timeRemaining -= GetFrameTime();
+    if (timeRemaining <= 0.0f) {
+        timeRemaining = 0.0f;
+        timeUp = true;
+    }
     checkEliminationWin();
+    checkTimeWin();
 }
 
 void Game::render() {
@@ -244,6 +250,14 @@ void Game::render() {
     renderer.drawHUD(player1, player2);
     renderer.drawPowerUps(player1, player2);
     DrawText(powerUpMessage, 10, 778, 16, BLACK);
+
+    // temporizador
+    int minutes = (int)(timeRemaining / 60);
+    int seconds = (int)(timeRemaining) % 60;
+    const char* timerText = TextFormat("%d:%02d", minutes, seconds);
+    Color timerColor = (timeRemaining <= 30.0f) ? RED : DARKGRAY;
+    DrawText(timerText, GetScreenWidth() / 2 - MeasureText(timerText, 30) / 2, 8, 30, timerColor);
+
     renderer.endFrame();
 }
 
@@ -288,6 +302,22 @@ void Game::checkEliminationWin() {
     else {
         result = GameResult::Player1Wins;
     }
+
+    gameOver = true;
+}
+
+void Game::checkTimeWin() {
+    if (gameOver || !timeUp) return;
+
+    int p1Count = 0, p2Count = 0;
+    for (int i = 0; i < 4; i++) {
+        if (player1.getTank(i).isAlive()) p1Count++;
+        if (player2.getTank(i).isAlive()) p2Count++;
+    }
+
+    if (p1Count > p2Count) result = GameResult::Player1Wins;
+    else if (p2Count > p1Count) result = GameResult::Player2Wins;
+    else                        result = GameResult::Draw;
 
     gameOver = true;
 }

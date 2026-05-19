@@ -42,6 +42,9 @@ private:
     int extraTurns = 0; // por power-up doble turno
 
     bool gameOver = false;
+    float timeRemaining = 300.0f; // 5 minutos en segundos
+    bool timeUp = false;
+
     GameResult result = GameResult::None;
 
     void nextTurn();
@@ -49,5 +52,7 @@ private:
     void randomPowerUp();
 
     void checkEliminationWin();
+
+    void checkTimeWin();
 };
 
