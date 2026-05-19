@@ -37,4 +37,5 @@ private:
     Texture2D tankCyan;
     Texture2D tankRed;
     Texture2D tankYellow;
+    Texture2D bullet;
 };

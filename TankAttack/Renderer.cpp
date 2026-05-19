@@ -18,6 +18,7 @@ void Renderer::initialize() {
     tankCyan = LoadTexture("textures/tanks/lightblueTank.png");
     tankRed = LoadTexture("textures/tanks/redTank.png");
     tankYellow = LoadTexture("textures/tanks/yellowTank.png");
+    bullet = LoadTexture("textures/tanks/bullet.png");
 }
 
 void Renderer::close() {
@@ -147,7 +148,9 @@ void Renderer::drawBulletTrail(const BulletPath& shot, const Map& map) {
         map.nodeToCoords(shot.nodes[i], row, col);
         int x = col * CELL_SIZE + CELL_SIZE / 4;
         int y = row * CELL_SIZE + CELL_SIZE / 4;
-        DrawRectangle(x, y, CELL_SIZE / 2, CELL_SIZE / 2, ORANGE);
+        //DrawRectangle(x, y, CELL_SIZE / 2, CELL_SIZE / 2, ORANGE);
+        Texture2D drawBullet = bullet;
+        DrawTexture(drawBullet, x, y, WHITE);
     }
 }
 
