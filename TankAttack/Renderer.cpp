@@ -21,8 +21,8 @@ void Renderer::initialize() {
     bullet = LoadTexture("textures/tanks/bullet.png");
 
     rocks = LoadTexture("textures/map/rocks.png");
-    floor = LoadTexture("textures/map/dirt.png");
-    floorPath = LoadTexture("textures/map/podzol.png");
+    floorPath = LoadTexture("textures/map/dirt.png");
+    floor = LoadTexture("textures/map/podzol.png");
 }
 
 void Renderer::close() {
