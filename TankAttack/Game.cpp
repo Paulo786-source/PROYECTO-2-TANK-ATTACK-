@@ -7,16 +7,26 @@ Game::Game() : player1(1), player2(2), activePowerUp({ PowerUpType::doubleTurn }
 
 void Game::run() {
     while (renderer.windowOpen()) {
+        handleInput();
         if (!gameOver) {
-            handleInput();
             update();
         }
-        render(); 
+        render();
     }
     renderer.close();
 }
 
 void Game::handleInput() {
+    if (gameOver) {
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            int mx = GetMouseX(), my = GetMouseY();
+            if (mx >= 565 && mx <= 715 && my >= 430 && my <= 480) {
+                renderer.close();
+            }
+        }
+        return;
+    }
+
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         int clickCol = GetMouseX() / CELL_SIZE;
         int clickRow = GetMouseY() / CELL_SIZE;
@@ -41,7 +51,6 @@ void Game::handleInput() {
             }
         }
         else {
-
             // verificar si clickeó sobre otro tanque del mismo jugador
             bool clickedAnotherTank = false;
             for (int i = 0; i < 4; i++) {
@@ -70,6 +79,7 @@ void Game::handleInput() {
                         break;
                     }
                 }
+
                 // mover el tanque al destino
                 if (map.getCell(clickRow, clickCol).type == CellType::free && !cellOccupied) {
                     int rowTank = selectedTank->getPosition().row;
@@ -118,12 +128,10 @@ void Game::handleInput() {
                         selectedTank->setPosition({ destRow, destCol });
                     }
 
-
                     selectedTank->setSelected(false);
                     selectedTank = nullptr;
                     nextTurn();
                 }
-
             }
         }
     }
@@ -178,8 +186,8 @@ void Game::handleInput() {
             case PowerUpType::doubleTurn:      powerUpMessage = "Power-up: Doble Turno";           break;
             case PowerUpType::movePrecision:   powerUpMessage = "Power-up: Precision de Movimiento"; break;
             case PowerUpType::attackPower:     powerUpMessage = "Power-up: Poder de Ataque";        break;
+            case PowerUpType::attackPrecision: powerUpMessage = "Power-up: Precision de Ataque";    break;
             default:                           powerUpMessage = "";                                  break;
-            case PowerUpType::attackPrecision: powerUpMessage = "Power-up: Precision de Ataque"; break;
             }
             if (activePowerUp.type == PowerUpType::doubleTurn) {
                 extraTurns = 2;
@@ -252,11 +260,37 @@ void Game::render() {
     DrawText(powerUpMessage, 10, 778, 16, BLACK);
 
     // temporizador
-    int minutes = (int)(timeRemaining / 60);
-    int seconds = (int)(timeRemaining) % 60;
-    const char* timerText = TextFormat("%d:%02d", minutes, seconds);
-    Color timerColor = (timeRemaining <= 30.0f) ? RED : DARKGRAY;
-    DrawText(timerText, GetScreenWidth() / 2 - MeasureText(timerText, 30) / 2, 8, 30, timerColor);
+    if (!gameOver) {
+        int minutes = (int)(timeRemaining / 60);
+        int seconds = (int)(timeRemaining) % 60;
+        const char* timerText = TextFormat("%d:%02d", minutes, seconds);
+        Color timerColor = (timeRemaining <= 30.0f) ? RED : DARKGRAY;
+        DrawText(timerText, GetScreenWidth() / 2 - MeasureText(timerText, 30) / 2, 8, 30, timerColor);
+    }
+
+    // ventanilla de resultado
+    if (gameOver) {
+        DrawRectangle(250, 250, 780, 320, Fade(BLACK, 0.85f));
+        DrawRectangleLines(250, 250, 780, 320, WHITE);
+
+        const char* title = "";
+        Color titleColor = WHITE;
+        switch (result) {
+        case GameResult::Player1Wins: title = "Gana Jugador 1!"; titleColor = BLUE;   break;
+        case GameResult::Player2Wins: title = "Gana Jugador 2!"; titleColor = RED;    break;
+        case GameResult::Draw:        title = "Empate!";          titleColor = YELLOW; break;
+        default: break;
+        }
+        DrawText(title, GetScreenWidth() / 2 - MeasureText(title, 48) / 2, 290, 48, titleColor);
+
+        const char* reason = timeUp ? "Se acabo el tiempo"
+            : "Todos los tanques destruidos";
+        DrawText(reason, GetScreenWidth() / 2 - MeasureText(reason, 22) / 2, 355, 22, LIGHTGRAY);
+
+        DrawRectangle(565, 430, 150, 50, DARKBLUE);
+        DrawRectangleLines(565, 430, 150, 50, WHITE);
+        DrawText("Salir", 618, 447, 22, WHITE);
+    }
 
     renderer.endFrame();
 }
