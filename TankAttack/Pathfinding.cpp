@@ -52,12 +52,12 @@ bool Pathfinding::hasLineOfSight(const Map& map, Position a, Position b) {
 }
 
 // para tanques azul/celeste
-Path Pathfinding::BFS(const Map& map, Position origin, Position destination) {
+Path Pathfinding::BFS(const Map& map, Position origin, Position destination, const bool* blocked) {
     int totalNodes = ROWS * COLS;
     int originNode = map.coordsToNode(origin.row, origin.col);
     int destNode = map.coordsToNode(destination.row, destination.col);
     bool visited[ROWS * COLS] = {};
-    int  parent[ROWS * COLS];
+    int parent[ROWS * COLS];
 
     for (int i = 0; i < totalNodes; i++) parent[i] = -1;
 
@@ -80,6 +80,8 @@ Path Pathfinding::BFS(const Map& map, Position origin, Position destination) {
 
         for (int i = 0; i < count; i++) {
             int neighbor = neighbors[i];
+            // no pasar por celdas ocupadas por tanques
+            if (blocked[neighbor]) continue;
             if (!visited[neighbor]) {
                 visited[neighbor] = true;
                 parent[neighbor] = current;
@@ -89,22 +91,20 @@ Path Pathfinding::BFS(const Map& map, Position origin, Position destination) {
         }
     }
 
-    if (!visited[destNode]) return Path(); // no hay camino posible
-
+    if (!visited[destNode]) return Path();
     return reconstructPath(map, parent, originNode, destNode);
 }
 
 // para tanques rojo/amarillo
-Path Pathfinding::Dijkstra(const Map& map, Position origin, Position destination) {
+Path Pathfinding::Dijkstra(const Map& map, Position origin, Position destination, const bool* blocked) {
     int totalNodes = ROWS * COLS;
     int originNode = map.coordsToNode(origin.row, origin.col);
     int destNode = map.coordsToNode(destination.row, destination.col);
 
-    int  distance[ROWS * COLS];
+    int distance[ROWS * COLS];
     bool visited[ROWS * COLS] = {};
-    int  parent[ROWS * COLS];
+    int parent[ROWS * COLS];
 
-    // empiezan todas las distancias en infinito
     for (int i = 0; i < totalNodes; i++) {
         distance[i] = 999999;
         parent[i] = -1;
@@ -112,40 +112,39 @@ Path Pathfinding::Dijkstra(const Map& map, Position origin, Position destination
     distance[originNode] = 0;
 
     for (int iter = 0; iter < totalNodes; iter++) {
-        // buscar el nodo no visitado con menor distancia acumulada
-        int current= -1;
+        int u = -1;
         for (int i = 0; i < totalNodes; i++) {
-            if (!visited[i] && (current== -1 || distance[i] < distance[current])) {
-                current= i;
+            if (!visited[i] && (u == -1 || distance[i] < distance[u])) {
+                u = i;
             }
         }
 
-        if (current== -1 || distance[current] == 999999) break; // no quedan nodos alcanzables
-        if (current== destNode) break;
+        if (u == -1 || distance[u] == 999999) break;
+        if (u == destNode) break;
 
-        visited[current] = true;
+        visited[u] = true;
 
         int neighbors[4];
         int count = 0;
-        map.getGraph()->getNeighbors(current, neighbors, count);
+        map.getGraph()->getNeighbors(u, neighbors, count);
 
         for (int i = 0; i < count; i++) {
             int neighbor = neighbors[i];
-            int newDistance = distance[current] + 1; // cada celda tiene peso 1
-
+            // no pasar por celdas ocupadas por tanques
+            if (blocked[neighbor]) continue;
+            int newDistance = distance[u] + 1;
             if (newDistance < distance[neighbor]) {
                 distance[neighbor] = newDistance;
-                parent[neighbor] = current;
+                parent[neighbor] = u;
             }
         }
     }
 
-    if (distance[destNode] == 999999) return Path(); // no hay camino posible
-
+    if (distance[destNode] == 999999) return Path();
     return reconstructPath(map, parent, originNode, destNode);
 }
 
-Path Pathfinding::advanceUntilObstacle(const Map& map, Position origin, Position destination) {
+Path Pathfinding::advanceUntilObstacle(const Map& map, Position origin, Position destination, const bool* blocked) {
     Path path;
     int rowDiff = destination.row - origin.row;
     int colDiff = destination.col - origin.col;
@@ -155,8 +154,9 @@ Path Pathfinding::advanceUntilObstacle(const Map& map, Position origin, Position
         int row = origin.row + (int)((rowDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
         int col = origin.col + (int)((colDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
 
-        // para si se topa con un obstáculo
         if (map.getCell(row, col).type == CellType::obstacle) break;
+        // no pasar por celdas ocupadas por tanques
+        if (i > 0 && blocked[map.coordsToNode(row, col)]) break;
 
         path.nodes[path.length] = map.coordsToNode(row, col);
         path.length++;
@@ -185,7 +185,8 @@ void Pathfinding::addSegment(const Map& map, Path& path, Position from, Position
     }
 }
 
-Path Pathfinding::randomMovement(const Map& map, Position origin, Position destination) {
+
+Path Pathfinding::randomMovement(const Map& map, Position origin, Position destination, const bool* blocked) {
     // primero línea vista directa al destino
     if (hasLineOfSight(map, origin, destination)) {
         Path path;
@@ -203,10 +204,10 @@ Path Pathfinding::randomMovement(const Map& map, Position origin, Position desti
         int newRow = origin.row + rowJump;
         int newCol = origin.col + colJump;
 
-        bool inBounds = (newRow >= 0 && newRow < ROWS &&
-            newCol >= 0 && newCol < COLS);
+        bool inBounds = (newRow >= 0 && newRow < ROWS && newCol >= 0 && newCol < COLS);
 
-        if (inBounds && map.getCell(newRow, newCol).type == CellType::free) {
+        if (inBounds && map.getCell(newRow, newCol).type == CellType::free &&
+            !blocked[map.coordsToNode(newRow, newCol)]) {
             midpoint = { newRow, newCol };
             break;
         }
@@ -221,28 +222,24 @@ Path Pathfinding::randomMovement(const Map& map, Position origin, Position desti
     }
 
     // si ningún intento funcionó, se avanza hasta donde sea posible
-    return advanceUntilObstacle(map, origin, destination);
+    return advanceUntilObstacle(map, origin, destination, blocked);
 }
 
 // decide qué algoritmo usar según el tipo de tanque y un número aleatorio
-Path Pathfinding::calculatePath(const Map& map, Position origin, Position destination, bool useBFS, int bfsProb, int dijkstraProb) {
+Path Pathfinding::calculatePath(const Map& map, Position origin, Position destination, bool useBFS, const bool* blocked, int bfsProb, int dijkstraProb) {
     int probability = rand() % 100;
 
     if (useBFS) {
-        if (probability < bfsProb) {
-            return BFS(map, origin, destination);
-        }
-        else {
-            return randomMovement(map, origin, destination);
-        }
+        if (probability < bfsProb)
+            return BFS(map, origin, destination, blocked);
+        else
+            return randomMovement(map, origin, destination, blocked);
     }
     else {
-        if (probability < dijkstraProb) {
-            return Dijkstra(map, origin, destination);
-        }
-        else {
-            return randomMovement(map, origin, destination);
-        }
+        if (probability < dijkstraProb)
+            return Dijkstra(map, origin, destination, blocked);
+        else
+            return randomMovement(map, origin, destination, blocked);
     }
 }
 

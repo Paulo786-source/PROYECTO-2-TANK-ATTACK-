@@ -86,11 +86,28 @@ void Game::handleInput() {
                         bfsProb = 90;
                         dijkstraProb = 90;
                     }
+
                     hasPendingPowerUp = false;
+
+                    // marcar celdas ocupadas por tanques
+                    bool blocked[ROWS * COLS] = {};
+                    for (int p = 0; p < 2; p++) {
+                        Player& pl = (p == 0) ? player1 : player2;
+                        for (int t = 0; t < 4; t++) {
+                            Tank& tank = pl.getTank(t);
+                            if (tank.isAlive()) {
+                                int node = map.coordsToNode(tank.getPosition().row, tank.getPosition().col);
+                                blocked[node] = true;
+                            }
+                        }
+                    }
+                    // el tanque que se mueve no se bloquea a sí mismo
+                    blocked[map.coordsToNode(origin.row, origin.col)] = false;
 
                     currentPath = Path();
                     currentPath = Pathfinding::calculatePath(map, origin, destination,
-                        selectedTank->getTankType() == Tank::TankType::BFS, bfsProb, dijkstraProb);
+                        selectedTank->getTankType() == Tank::TankType::BFS, blocked, bfsProb, dijkstraProb);
+
                     if (currentPath.length > 0) {
                         int lastNode = currentPath.nodes[currentPath.length - 1];
                         int destRow;

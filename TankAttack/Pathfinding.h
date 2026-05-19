@@ -36,7 +36,7 @@ class Pathfinding {
 public:
     // tanques celeste/azul : 50 % BFS, 50 % aleatorio
     // tanques rojo / amarillo : 80 % Dijkstra, 20 % aleatorio
-    static Path calculatePath(const Map& map, Position origin, Position destination, bool useBFS, int bfsProb = 50, int dijkstraProb = 80);
+    static Path calculatePath(const Map& map, Position origin, Position destination, bool useBFS, const bool* blocked, int bfsProb = 50, int dijkstraProb = 80);
 
     static BulletPath calculateBulletPath(const Map& map, Position origin, Position target, Player& player1, Player& player2);
 
@@ -44,10 +44,11 @@ public:
         Player& player1, Player& player2);
 
 private:
-    static Path advanceUntilObstacle(const Map& map, Position origin, Position destination);
-    static Path BFS(const Map& map, Position origin, Position destination);
-    static Path Dijkstra(const Map& map, Position origin, Position destination);
-    static Path randomMovement(const Map& map, Position origin, Position destination);
+    static Path BFS(const Map& map, Position origin, Position destination, const bool* blocked);
+    static Path Dijkstra(const Map& map, Position origin, Position destination, const bool* blocked);
+    static Path randomMovement(const Map& map, Position origin, Position destination, const bool* blocked);
+    static Path advanceUntilObstacle(const Map& map, Position origin, Position destination, const bool* blocked);
+
     static Path reconstructPath(const Map& map, int* parent, int originNode, int destNode);
     static bool hasLineOfSight(const Map& map, Position a, Position b);
     static void addSegment(const Map& map, Path& path, Position from, Position to, bool skipFirst);
