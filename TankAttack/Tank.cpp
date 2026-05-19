@@ -22,7 +22,6 @@ void Tank::receiveDamage(int damageReceived) {
 	}
 }
 
-
 //Setters
 
 void Tank::setSelected(bool value) {
@@ -30,6 +29,9 @@ void Tank::setSelected(bool value) {
 }
 void Tank::setPosition(Position pos) {
 	this-> pos = pos;
+}
+void Tank::setAngle(float angle) {
+	this->angle = angle;
 }
 
 //Getters
@@ -53,5 +55,7 @@ Tank::TankColor Tank::getTankColor() const {
 Tank::TankType Tank::getTankType() const {
 	return type;
 }
-
+float Tank::getAngle() const {
+	return angle;
+}
 

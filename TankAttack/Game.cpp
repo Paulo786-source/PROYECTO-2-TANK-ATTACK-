@@ -131,6 +131,27 @@ void Game::handleInput() {
                         int destCol;
                         map.nodeToCoords(lastNode, destRow, destCol);
                         selectedTank->setPosition({ destRow, destCol });
+                        if (currentPath.length >= 2) {
+                            int secondlastNode = currentPath.nodes[currentPath.length - 2];
+                            int preDestRow;
+                            int preDestCol;
+                            map.nodeToCoords(secondlastNode, preDestRow, preDestCol);
+                            int rowDiff = preDestRow - destRow;
+                            int colDiff = preDestCol - destCol;
+
+                            float angle = 0.0f;
+                            if (rowDiff > 0 && colDiff == 0) angle = 0.0f;    // viene de abajo, apunta arriba
+                            else if (rowDiff < 0 && colDiff == 0) angle = 180.0f;  // viene de arriba, apunta abajo
+                            else if (rowDiff == 0 && colDiff > 0) angle = 270.0f;  // viene de la derecha, apunta izquierda
+                            else if (rowDiff == 0 && colDiff < 0) angle = 90.0f;   // viene de la izquierda, apunta derecha
+                            else if (rowDiff > 0 && colDiff > 0)  angle = 315.0f;  // diagonal
+                            else if (rowDiff > 0 && colDiff < 0)  angle = 45.0f;   // diagonal
+                            else if (rowDiff < 0 && colDiff > 0)  angle = 225.0f;  // diagonal
+                            else if (rowDiff < 0 && colDiff < 0)  angle = 135.0f;  // diagonal
+
+                            selectedTank->setAngle(angle);
+                        }
+
                     }
 
                     selectedTank->setSelected(false);

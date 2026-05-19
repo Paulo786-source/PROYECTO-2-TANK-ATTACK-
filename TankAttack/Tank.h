@@ -23,6 +23,7 @@ public:
 
     void setSelected(bool value);
     void setPosition(Position pos);
+    void setAngle(float angle);
 
     //Getters
 
@@ -32,6 +33,7 @@ public:
     Position getPosition() const;
     TankColor getTankColor() const;
     TankType getTankType() const;
+    float getAngle() const;
 
     void receiveDamage(int damageReceived);
 
@@ -48,5 +50,7 @@ private:
     bool selected = false;
 
     bool alive = true;
+
+    float angle = 0.0f;
 };
 
