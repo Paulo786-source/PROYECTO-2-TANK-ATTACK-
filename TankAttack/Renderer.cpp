@@ -13,9 +13,18 @@ Renderer::~Renderer() {}
 void Renderer::initialize() {
     InitWindow(windowWidth, windowHeight, "Tank Attack!");
     SetTargetFPS(60);
+
+    tankBlue = LoadTexture("textures/tanks/blueTank.png");
+    tankCyan = LoadTexture("textures/tanks/lightblueTank.png");
+    tankRed = LoadTexture("textures/tanks/redTank.png");
+    tankYellow = LoadTexture("textures/tanks/yellowTank.png");
 }
 
 void Renderer::close() {
+    UnloadTexture(tankBlue);
+    UnloadTexture(tankCyan);
+    UnloadTexture(tankRed);
+    UnloadTexture(tankYellow);
     CloseWindow();
 }
 
@@ -54,14 +63,29 @@ void Renderer::drawTanks(Player& playerOne, Player& playerTwo) {
             int y = tank.getPosition().row * CELL_SIZE;
             bool selected = tank.isSelected();
             Tank::TankColor color = tank.getTankColor();
-            Color drawColor;
+            Texture2D drawTexture;
             switch (color) {
-            case Tank::TankColor::blue:   drawColor = BLUE;     break;
-            case Tank::TankColor::cyan:   drawColor = SKYBLUE;  break;
-            case Tank::TankColor::red:    drawColor = RED;      break;
-            case Tank::TankColor::yellow: drawColor = YELLOW;   break;
+            case Tank::TankColor::blue:   drawTexture = tankBlue;     break;
+            case Tank::TankColor::cyan:   drawTexture = tankCyan;  break;
+            case Tank::TankColor::red:    drawTexture = tankRed;      break;
+            case Tank::TankColor::yellow: drawTexture = tankYellow;   break;
             }
-            DrawRectangle(x, y, CELL_SIZE, CELL_SIZE, drawColor);
+            Rectangle dest = {
+                (float)x + (float)CELL_SIZE / 2,
+                (float)y + (float)CELL_SIZE / 2,
+                (float)CELL_SIZE,
+                (float)CELL_SIZE
+            };
+            Vector2 origin = { (float)CELL_SIZE / 2, (float)CELL_SIZE / 2 };
+            float angle = tank.getAngle();
+            DrawTexturePro(
+                drawTexture,                                                         // la textura
+                { 0, 0, (float)drawTexture.width, (float)drawTexture.height },       // rectángulo fuente: { 0, 0, ancho, alto de la imagen }
+                dest,                                                                // rectángulo destino: { x, y, CELL_SIZE, CELL_SIZE }
+                origin,                                                              // punto de rotación: { CELL_SIZE/2, CELL_SIZE/2 }
+                angle,                                                               // ángulo de rotación
+                WHITE                                                                // tinte de color
+            );
             if (selected) {
                 DrawRectangleLines(x, y, CELL_SIZE, CELL_SIZE, WHITE);
             }
@@ -77,14 +101,29 @@ void Renderer::drawTanks(Player& playerOne, Player& playerTwo) {
             int y2 = tank2.getPosition().row * CELL_SIZE;
             bool selected2 = tank2.isSelected();
             Tank::TankColor color2 = tank2.getTankColor();
-            Color drawColor2;
+            Texture2D drawTexture;
             switch (color2) {
-            case Tank::TankColor::blue:   drawColor2 = BLUE;     break;
-            case Tank::TankColor::cyan:   drawColor2 = SKYBLUE;  break;
-            case Tank::TankColor::red:    drawColor2 = RED;      break;
-            case Tank::TankColor::yellow: drawColor2 = YELLOW;   break;
+            case Tank::TankColor::blue:   drawTexture = tankBlue;     break;
+            case Tank::TankColor::cyan:   drawTexture = tankCyan;  break;
+            case Tank::TankColor::red:    drawTexture = tankRed;      break;
+            case Tank::TankColor::yellow: drawTexture = tankYellow;   break;
             }
-            DrawRectangle(x2, y2, CELL_SIZE, CELL_SIZE, drawColor2);
+            Rectangle dest = {
+                (float)x2 + (float)CELL_SIZE / 2,
+                (float)y2 + (float)CELL_SIZE / 2,
+                (float)CELL_SIZE,
+                (float)CELL_SIZE
+            };
+            Vector2 origin = { (float)CELL_SIZE / 2, (float)CELL_SIZE / 2 };
+            float angle = tank2.getAngle();
+            DrawTexturePro(
+                drawTexture,                                                         // la textura
+                { 0, 0, (float)drawTexture.width, (float)drawTexture.height },       // rectángulo fuente: { 0, 0, ancho, alto de la imagen }
+                dest,                                                                // rectángulo destino: { x, y, CELL_SIZE, CELL_SIZE }
+                origin,                                                              // punto de rotación: { CELL_SIZE/2, CELL_SIZE/2 }
+                angle,                                                               // ángulo de rotación
+                WHITE                                                                // tinte de color
+            );
             if (selected2) {
                 DrawRectangleLines(x2, y2, CELL_SIZE, CELL_SIZE, WHITE);
             }

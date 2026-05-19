@@ -176,6 +176,21 @@ void Game::handleInput() {
         Position origin = selectedTank->getPosition();
         Position target = { clickRow, clickCol };
 
+        int rowDiff = target.row - origin.row;
+        int colDiff = target.col - origin.col;
+
+        float angle = 0.0f;
+        if (rowDiff < 0 && colDiff == 0) angle = 0.0f;    // objetivo arriba
+        else if (rowDiff > 0 && colDiff == 0) angle = 180.0f;  // objetivo abajo
+        else if (rowDiff == 0 && colDiff > 0) angle = 90.0f;   // objetivo derecha
+        else if (rowDiff == 0 && colDiff < 0) angle = 270.0f;  // objetivo izquierda
+        else if (rowDiff < 0 && colDiff > 0)  angle = 45.0f;   // diagonal arriba-derecha
+        else if (rowDiff < 0 && colDiff < 0)  angle = 315.0f;  // diagonal arriba-izquierda
+        else if (rowDiff > 0 && colDiff > 0)  angle = 135.0f;  // diagonal abajo-derecha
+        else if (rowDiff > 0 && colDiff < 0)  angle = 225.0f;  // diagonal abajo-izquierda
+
+        selectedTank->setAngle(angle);
+
         currentPath = Path();
 
         delete currentBullet;

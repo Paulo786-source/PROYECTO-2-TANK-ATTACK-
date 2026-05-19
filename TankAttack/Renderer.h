@@ -32,4 +32,9 @@ public:
 private:
     int windowWidth;
     int windowHeight;
+
+    Texture2D tankBlue;
+    Texture2D tankCyan;
+    Texture2D tankRed;
+    Texture2D tankYellow;
 };
