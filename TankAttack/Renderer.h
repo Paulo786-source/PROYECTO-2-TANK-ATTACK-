@@ -38,4 +38,8 @@ private:
     Texture2D tankRed;
     Texture2D tankYellow;
     Texture2D bullet;
+
+    Texture2D rocks;
+    Texture2D floor;
+    Texture2D floorPath;
 };

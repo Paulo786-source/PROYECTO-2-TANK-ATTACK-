@@ -19,6 +19,10 @@ void Renderer::initialize() {
     tankRed = LoadTexture("textures/tanks/redTank.png");
     tankYellow = LoadTexture("textures/tanks/yellowTank.png");
     bullet = LoadTexture("textures/tanks/bullet.png");
+
+    rocks = LoadTexture("textures/map/rocks.png");
+    floor = LoadTexture("textures/map/dirt.png");
+    floorPath = LoadTexture("textures/map/podzol.png");
 }
 
 void Renderer::close() {
@@ -45,11 +49,14 @@ void Renderer::endFrame() {
 void Renderer::drawMap(const Map& map) {
     for (int row = 0; row < map.getRows(); ++row) {
         for (int col = 0; col < map.getCols(); ++col) {
+            DrawTexture(floor, col * CELL_SIZE, row * CELL_SIZE, WHITE);
             if (map.getCell(row, col).type == CellType::obstacle) {
-                DrawRectangle(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE, GRAY);
+                DrawTexture(rocks, col * CELL_SIZE, row * CELL_SIZE, WHITE);
+                //DrawRectangle(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE, GRAY);
             }
             else {
-                DrawRectangle(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE, LIGHTGRAY);
+                DrawTexture(floor, col * CELL_SIZE, row * CELL_SIZE, WHITE);
+                //DrawRectangle(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE, LIGHTGRAY);
             }
         }
     }
@@ -138,7 +145,8 @@ void Renderer::drawPath(const Path& path, const Map& map) {
         int drawRow;
         int drawCol;
         map.nodeToCoords(path.nodes[i], drawRow, drawCol);
-        DrawRectangle(drawCol * CELL_SIZE, drawRow * CELL_SIZE, CELL_SIZE, CELL_SIZE, PURPLE);
+        DrawTexture(floorPath, drawCol * CELL_SIZE, drawRow * CELL_SIZE, WHITE);
+        //DrawRectangle(drawCol * CELL_SIZE, drawRow * CELL_SIZE, CELL_SIZE, CELL_SIZE, PURPLE);
     }
 }
 
