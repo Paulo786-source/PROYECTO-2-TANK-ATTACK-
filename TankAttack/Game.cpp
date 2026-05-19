@@ -7,9 +7,11 @@ Game::Game() : player1(1), player2(2), activePowerUp({ PowerUpType::doubleTurn }
 
 void Game::run() {
     while (renderer.windowOpen()) {
-        handleInput();
-        update();
-        render();
+        if (!gameOver) {
+            handleInput();
+            update();
+        }
+        render(); 
     }
     renderer.close();
 }
@@ -221,7 +223,7 @@ void Game::dealBulletDamage(const Bullet& bullet) {
 }
 
 void Game::update() {
-    // pendiente para fases siguientes
+    checkEliminationWin();
 }
 
 void Game::render() {
@@ -267,4 +269,25 @@ void Game::randomPowerUp() {
         PowerUpType type = (PowerUpType)(rand() % 4);
         player.addPowerUp({ type });
     }
+}
+
+void Game::checkEliminationWin() {
+    if (gameOver) return;
+
+    bool p1HasTanks = player1.hasTanks();
+    bool p2HasTanks = player2.hasTanks();
+
+    if (p1HasTanks && p2HasTanks) return; // partida sigue normal
+
+    if (!p1HasTanks && !p2HasTanks) {
+        result = GameResult::Draw;
+    }
+    else if (!p1HasTanks) {
+        result = GameResult::Player2Wins;
+    }
+    else {
+        result = GameResult::Player1Wins;
+    }
+
+    gameOver = true;
 }

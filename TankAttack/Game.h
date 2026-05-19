@@ -5,6 +5,7 @@
 #include "Pathfinding.h"
 #include "Bullet.h"
 
+enum class GameResult { None, Player1Wins, Player2Wins, Draw };
 
 class Game
 {
@@ -39,8 +40,14 @@ private:
     const char* powerUpMessage = "";
 
     int extraTurns = 0; // por power-up doble turno
+
+    bool gameOver = false;
+    GameResult result = GameResult::None;
+
     void nextTurn();
 
     void randomPowerUp();
+
+    void checkEliminationWin();
 };
 
