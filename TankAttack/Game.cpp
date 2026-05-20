@@ -312,10 +312,12 @@ void Game::render() {
     }
 
     if (currentTurn == 1) {
-        DrawText("Turno: Jugador 1", 10, 10, 20, BLUE);
+        DrawRectangle((GetScreenWidth() / 2 - MeasureText("Turno: Jugador 1", 20) / 2) - 5, 42.5, MeasureText("Turno: Jugador 1", 20) + 10, 25, Fade(BLUE, 0.5f));
+        DrawText("Turno: Jugador 1", GetScreenWidth() / 2 - MeasureText("Turno: Jugador 1", 20) / 2, 45, 20, SKYBLUE);
     }
     else {
-        DrawText("Turno: Jugador 2", 10, 10, 20, RED);
+        DrawRectangle((GetScreenWidth() / 2 - MeasureText("Turno: Jugador 1", 20) / 2) - 5, 42.5, MeasureText("Turno: Jugador 1", 20) + 10, 25, Fade(RED, 0.5f));
+        DrawText("Turno: Jugador 2", GetScreenWidth() / 2 - MeasureText("Turno: Jugador 2", 20) / 2, 45, 20, ORANGE);
     }
     renderer.drawHUD(player1, player2);
     renderer.drawPowerUps(player1, player2);
@@ -329,7 +331,7 @@ void Game::render() {
         int minutes = (int)(timeRemaining / 60);
         int seconds = (int)(timeRemaining) % 60;
         const char* timerText = TextFormat("%d:%02d", minutes, seconds);
-        Color timerColor = (timeRemaining <= 30.0f) ? RED : DARKGRAY;
+        Color timerColor = (timeRemaining <= 30.0f) ? RED : WHITE;
         DrawText(timerText, GetScreenWidth() / 2 - MeasureText(timerText, 30) / 2, 8, 30, timerColor);
     }
 
