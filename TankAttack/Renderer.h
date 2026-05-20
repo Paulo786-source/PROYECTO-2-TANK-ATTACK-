@@ -42,4 +42,9 @@ private:
     Texture2D rocks;
     Texture2D floor;
     Texture2D floorPath;
+
+    Texture2D doubleTurn;
+    Texture2D movePrecision;
+    Texture2D attackPrecision;
+    Texture2D attackPower;
 };

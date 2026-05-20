@@ -23,6 +23,11 @@ void Renderer::initialize() {
     rocks = LoadTexture("textures/map/rocks.png");
     floorPath = LoadTexture("textures/map/dirt.png");
     floor = LoadTexture("textures/map/podzol.png");
+
+    doubleTurn = LoadTexture("textures/hub/doubleTurn.png");
+    movePrecision = LoadTexture("textures/hub/movePrecision.png");
+    attackPrecision = LoadTexture("textures/hub/attackPrecision.png");
+    attackPower = LoadTexture("textures/hub/attackPower.png");
 }
 
 void Renderer::close() {
@@ -195,19 +200,23 @@ void Renderer::drawPowerUps(Player& player1, Player& player2) {
 
     for (int i = 0; i < player1QueueCount; i++) {
         PowerUp powerUp = player1Queue.getItem(i);
-        Color powerUpColor;
+        Texture2D powerUpTexture;
         switch (powerUp.type) {
-            case PowerUpType::doubleTurn:      powerUpColor = GREEN;   break;
-            case PowerUpType::movePrecision:   powerUpColor = ORANGE;  break;
-            case PowerUpType::attackPrecision: powerUpColor = PURPLE;  break;
-            case PowerUpType::attackPower:     powerUpColor = RED;     break;
-            default:                           powerUpColor = WHITE;   break;
+        case PowerUpType::doubleTurn:      powerUpTexture = doubleTurn;   break;
+        case PowerUpType::movePrecision:   powerUpTexture = movePrecision;  break;
+        case PowerUpType::attackPrecision: powerUpTexture = attackPrecision;  break;
+        case PowerUpType::attackPower:     powerUpTexture = attackPower;     break;
+        //default:                           powerUpTexture = WHITE;   break;
         }
-        int x = i * 20 + 10;
-        DrawRectangle(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, powerUpColor);
+
+
+        int x = i * 60 + 10;
+
+        DrawTexture(powerUpTexture, x, 735, WHITE);
+        //DrawRectangle(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, powerUpColor);
 
         if (i == 0) {
-            DrawRectangleLines(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, BLACK);
+            DrawRectangleLines(x, 735, CELL_SIZE * 2, CELL_SIZE * 2, BLACK);
         }
     }
 
@@ -216,19 +225,20 @@ void Renderer::drawPowerUps(Player& player1, Player& player2) {
 
     for (int i = 0; i < player2QueueCount; i++) {
         PowerUp powerUp = player2Queue.getItem(i);
-        Color powerUpColor;
+        Texture2D powerUpTexture;
         switch (powerUp.type) {
-        case PowerUpType::doubleTurn:      powerUpColor = GREEN;   break;
-        case PowerUpType::movePrecision:   powerUpColor = ORANGE;  break;
-            //case PowerUpType::attackPrecision: powerUpColor = PURPLE;  break;
-        case PowerUpType::attackPower:     powerUpColor = RED;     break;
-        default:                           powerUpColor = WHITE;   break;
+        case PowerUpType::doubleTurn:      powerUpTexture = doubleTurn;   break;
+        case PowerUpType::movePrecision:   powerUpTexture = movePrecision;  break;
+        case PowerUpType::attackPrecision: powerUpTexture = attackPrecision;  break;
+        case PowerUpType::attackPower:     powerUpTexture = attackPower;     break;
+            //default:                           powerUpTexture = WHITE;   break;
         }
-        int x = 650 + (i * 20 + 10);
-        DrawRectangle(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, powerUpColor);
+        int x = 650 + (i * 60);
+        DrawTexture(powerUpTexture, x, 735, WHITE);
+        //DrawRectangle(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, powerUpColor);
 
         if (i == 0) {
-            DrawRectangleLines(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, BLACK);
+            DrawRectangleLines(x, 735, CELL_SIZE * 2, CELL_SIZE * 2, BLACK);
         }
     }
 }
