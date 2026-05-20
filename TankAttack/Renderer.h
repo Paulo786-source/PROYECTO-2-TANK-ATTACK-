@@ -47,4 +47,6 @@ private:
     Texture2D movePrecision;
     Texture2D attackPrecision;
     Texture2D attackPower;
+
+    Texture2D frame;
 };

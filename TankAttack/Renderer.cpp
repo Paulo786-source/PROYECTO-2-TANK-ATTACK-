@@ -6,7 +6,7 @@
 #include "Tank.h"
 
 
-Renderer::Renderer() : windowWidth(1280), windowHeight(800) {}
+Renderer::Renderer() : windowWidth(1280), windowHeight(820) {}
 
 Renderer::~Renderer() {}
 
@@ -28,6 +28,8 @@ void Renderer::initialize() {
     movePrecision = LoadTexture("textures/hub/movePrecision.png");
     attackPrecision = LoadTexture("textures/hub/attackPrecision.png");
     attackPower = LoadTexture("textures/hub/attackPower.png");
+
+    frame = LoadTexture("textures/hub/frame.png");
 }
 
 void Renderer::close() {
@@ -35,6 +37,14 @@ void Renderer::close() {
     UnloadTexture(tankCyan);
     UnloadTexture(tankRed);
     UnloadTexture(tankYellow);
+    UnloadTexture(bullet);
+    UnloadTexture(rocks);
+    UnloadTexture(floorPath);
+    UnloadTexture(floor);
+    UnloadTexture(doubleTurn);
+    UnloadTexture(movePrecision);
+    UnloadTexture(attackPrecision);
+    UnloadTexture(attackPower);
     CloseWindow();
 }
 
@@ -58,10 +68,6 @@ void Renderer::drawMap(const Map& map) {
             if (map.getCell(row, col).type == CellType::obstacle) {
                 DrawTexture(rocks, col * CELL_SIZE, row * CELL_SIZE, WHITE);
                 //DrawRectangle(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE, GRAY);
-            }
-            else {
-                DrawTexture(floor, col * CELL_SIZE, row * CELL_SIZE, WHITE);
-                //DrawRectangle(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE, LIGHTGRAY);
             }
         }
     }
@@ -162,8 +168,7 @@ void Renderer::drawBulletTrail(const BulletPath& shot, const Map& map) {
         int x = col * CELL_SIZE + CELL_SIZE / 4;
         int y = row * CELL_SIZE + CELL_SIZE / 4;
         //DrawRectangle(x, y, CELL_SIZE / 2, CELL_SIZE / 2, ORANGE);
-        Texture2D drawBullet = bullet;
-        DrawTexture(drawBullet, x, y, WHITE);
+        DrawTexture(bullet, x, y, WHITE);
     }
 }
 
@@ -198,6 +203,14 @@ void Renderer::drawPowerUps(Player& player1, Player& player2) {
     PowerUpQueue player1Queue = player1.getPowerUpQueue();
     int player1QueueCount = player1Queue.getSize();
 
+    for (int i = 0; i < 10; i++) {
+        int x = i * 60 + 10;
+        DrawTexture(frame, x, 740, WHITE);
+
+        int x2 = 650 + (i * 60);
+        DrawTexture(frame, x2, 740, WHITE);
+    }
+
     for (int i = 0; i < player1QueueCount; i++) {
         PowerUp powerUp = player1Queue.getItem(i);
         Texture2D powerUpTexture;
@@ -212,11 +225,11 @@ void Renderer::drawPowerUps(Player& player1, Player& player2) {
 
         int x = i * 60 + 10;
 
-        DrawTexture(powerUpTexture, x, 735, WHITE);
+        DrawTexture(powerUpTexture, x, 742, WHITE);
         //DrawRectangle(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, powerUpColor);
 
         if (i == 0) {
-            DrawRectangleLines(x, 735, CELL_SIZE * 2, CELL_SIZE * 2, BLACK);
+            DrawRectangleLines(x, 742, CELL_SIZE * 1.5, CELL_SIZE * 1.5, BLACK);
         }
     }
 
@@ -234,11 +247,11 @@ void Renderer::drawPowerUps(Player& player1, Player& player2) {
             //default:                           powerUpTexture = WHITE;   break;
         }
         int x = 650 + (i * 60);
-        DrawTexture(powerUpTexture, x, 735, WHITE);
+        DrawTexture(powerUpTexture, x, 742, WHITE);
         //DrawRectangle(x, 755, CELL_SIZE / 2, CELL_SIZE / 2, powerUpColor);
 
         if (i == 0) {
-            DrawRectangleLines(x, 735, CELL_SIZE * 2, CELL_SIZE * 2, BLACK);
+            DrawRectangleLines(x, 742, CELL_SIZE * 1.5, CELL_SIZE * 1.5, BLACK);
         }
     }
 }

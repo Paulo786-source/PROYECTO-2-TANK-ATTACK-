@@ -23,6 +23,8 @@ private:
     Map map;
     Renderer renderer;
 
+    Texture2D hub;
+
     Bullet* currentBullet = nullptr;
 
     // Jugadores

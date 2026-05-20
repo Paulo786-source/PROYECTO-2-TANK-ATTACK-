@@ -305,6 +305,8 @@ void Game::render() {
     renderer.drawMap(map);
     renderer.drawPath(currentPath, map);
     renderer.drawTanks(player1, player2);
+    hub = LoadTexture("textures/hub/hub.png");
+    DrawTexture(hub, 0, 704, WHITE);
     if (currentBullet != nullptr) {
         renderer.drawBulletTrail(currentBullet->getBulletPath(), map);
     }
@@ -317,8 +319,10 @@ void Game::render() {
     }
     renderer.drawHUD(player1, player2);
     renderer.drawPowerUps(player1, player2);
-    DrawText(powerUpMessage1, 10, 778, 16, BLACK);
-    DrawText(powerUpMessage2, 650, 778, 16, BLACK);
+    DrawText(powerUpMessage1, 10, 800, 16, BLACK);
+    DrawText(powerUpMessage2, 650, 800, 16, BLACK);
+
+
 
     // temporizador
     if (!gameOver) {
