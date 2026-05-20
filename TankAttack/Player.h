@@ -1,6 +1,7 @@
 #pragma once
 #include "Tank.h"
 #include "PowerUpQueue.h"
+#include "TankFactory.h"
 
 class Player
 {
@@ -19,6 +20,7 @@ public:
     ~Player();
 
     Tank& getTank(int index);
+    const Tank& getTank(int index) const;
 
     int getPlayerNumber() const;
 
@@ -33,4 +35,3 @@ public:
 
     int getPowerUpCount() const;
 };
-

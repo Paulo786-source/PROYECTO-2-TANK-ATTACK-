@@ -131,10 +131,12 @@
   <ItemGroup>
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Gamecommand.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Pathfinding.cpp" />
+    <ClCompile Include="Pathfindingstrategy.h" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PowerUpQueue.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -143,6 +145,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioManager.h" />
+    <ClInclude Include="Gamecommand.h" />
+    <ClInclude Include="Gameeventlistener.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Cell.h" />
     <ClInclude Include="Game.h" />
@@ -154,6 +158,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Tank.h" />
     <ClInclude Include="Bullet.h" />
+    <ClInclude Include="Tankfactory.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Sonidos\boing.ogg" />

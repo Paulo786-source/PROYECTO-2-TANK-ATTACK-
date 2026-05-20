@@ -58,17 +58,17 @@ void AudioManager::startBackgroundMusic() {
     PlayMusicStream(backgroundMusic);
 }
 
-// Combate
+// combate
 void AudioManager::playShot() { if (initialized) PlaySound(shotSound); }
 void AudioManager::playExplosion() { if (initialized) PlaySound(explosionSound); }
 void AudioManager::playBounce() { if (initialized) PlaySound(bounceSound); }
 void AudioManager::playHit() { if (initialized) PlaySound(hitSound); }
 
-// Movimiento
+// movimiento
 void AudioManager::playTankMove() { if (initialized) PlaySound(tankMoveSound); }
 void AudioManager::playTankSelect() { if (initialized) PlaySound(tankSelectSound); }
 
-// Power-ups
+// power-ups
 void AudioManager::playPowerUpPickup() { if (initialized) PlaySound(powerUpPickupSound); }
 void AudioManager::playPowerUpActivate() { if (initialized) PlaySound(powerUpActivateSound); }
 
@@ -80,4 +80,23 @@ void AudioManager::playButtonClick() { if (initialized) PlaySound(buttonClickSou
 void AudioManager::stopBackgroundMusic() {
     if (!initialized) return;
     StopMusicStream(backgroundMusic);
+}
+
+// observer
+void AudioManager::onGameEvent(GameEvent event) {
+    switch (event) {
+    case GameEvent::Shot:                playShot();              break;
+    case GameEvent::Explosion:           playExplosion();         break;
+    case GameEvent::Bounce:              playBounce();            break;
+    case GameEvent::Hit:                 playHit();               break;
+    case GameEvent::TankMove:            playTankMove();          break;
+    case GameEvent::TankSelect:          playTankSelect();        break;
+    case GameEvent::PowerUpPickup:       playPowerUpPickup();     break;
+    case GameEvent::PowerUpActivate:     playPowerUpActivate();   break;
+    case GameEvent::TurnChange:          playTurnChange();        break;
+    case GameEvent::Results:             playResults();           break;
+    case GameEvent::ButtonClick:         playButtonClick();       break;
+    case GameEvent::BackgroundMusicStart: startBackgroundMusic(); break;
+    case GameEvent::BackgroundMusicStop:  stopBackgroundMusic();  break;
+    }
 }

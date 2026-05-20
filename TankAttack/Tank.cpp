@@ -1,4 +1,5 @@
 #include "Tank.h"
+#include "PathfindingStrategy.h"
 
 Tank::Tank(Position pos, TankColor color) {
 	this->pos = pos;
@@ -6,11 +7,20 @@ Tank::Tank(Position pos, TankColor color) {
 
 	if (color == TankColor::blue || color == TankColor::cyan) {
 		type = TankType::BFS;
+		strategy = new BFSStrategy();
 	}
-
 	else {
 		type = TankType::Dijkstra;
+		strategy = new DijkstraStrategy();
 	}
+}
+
+Tank::~Tank() {
+	delete strategy;
+}
+
+const PathfindingStrategy* Tank::getStrategy() const {
+	return strategy;
 }
 
 void Tank::receiveDamage(int damageReceived) {
@@ -22,19 +32,19 @@ void Tank::receiveDamage(int damageReceived) {
 	}
 }
 
-//Setters
+// set
 
 void Tank::setSelected(bool value) {
 	selected = value;
 }
 void Tank::setPosition(Position pos) {
-	this-> pos = pos;
+	this->pos = pos;
 }
 void Tank::setAngle(float angle) {
 	this->angle = angle;
 }
 
-//Getters
+// get
 
 int Tank::getHealth() const {
 	return health;
@@ -58,4 +68,3 @@ Tank::TankType Tank::getTankType() const {
 float Tank::getAngle() const {
 	return angle;
 }
-

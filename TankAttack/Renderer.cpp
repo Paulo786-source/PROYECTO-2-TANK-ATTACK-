@@ -6,7 +6,7 @@
 #include "Tank.h"
 
 
-Renderer::Renderer() : windowWidth(1280), windowHeight(820) {}
+Renderer::Renderer() {}
 
 Renderer::~Renderer() {}
 
@@ -30,6 +30,7 @@ void Renderer::initialize() {
     attackPower = LoadTexture("textures/hub/attackPower.png");
 
     frame = LoadTexture("textures/hub/frame.png");
+    hub = LoadTexture("textures/hub/hub.png");
 }
 
 void Renderer::close() {
@@ -45,6 +46,8 @@ void Renderer::close() {
     UnloadTexture(movePrecision);
     UnloadTexture(attackPrecision);
     UnloadTexture(attackPower);
+    UnloadTexture(frame);
+    UnloadTexture(hub);
     CloseWindow();
 }
 
@@ -73,22 +76,28 @@ void Renderer::drawMap(const Map& map) {
     }
 }
 
+void Renderer::drawHub() {
+    DrawTexture(hub, 0, 704, WHITE);
+}
+
 void Renderer::drawTanks(Player& playerOne, Player& playerTwo) {
-    for (int i = 0; i < 4; i++) {
-        // Jugador 1
-        Tank& tank = playerOne.getTank(i);
-        if (tank.isAlive()) {
+    for (int p = 0; p < 2; p++) {
+        Player& player = (p == 0) ? playerOne : playerTwo;
+        for (int i = 0; i < 4; i++) {
+            Tank& tank = player.getTank(i);
+            if (!tank.isAlive()) continue;
+
             int x = tank.getPosition().col * CELL_SIZE;
             int y = tank.getPosition().row * CELL_SIZE;
-            bool selected = tank.isSelected();
-            Tank::TankColor color = tank.getTankColor();
+
             Texture2D drawTexture;
-            switch (color) {
-            case Tank::TankColor::blue:   drawTexture = tankBlue;     break;
-            case Tank::TankColor::cyan:   drawTexture = tankCyan;  break;
-            case Tank::TankColor::red:    drawTexture = tankRed;      break;
-            case Tank::TankColor::yellow: drawTexture = tankYellow;   break;
+            switch (tank.getTankColor()) {
+            case Tank::TankColor::blue:   drawTexture = tankBlue;   break;
+            case Tank::TankColor::cyan:   drawTexture = tankCyan;   break;
+            case Tank::TankColor::red:    drawTexture = tankRed;    break;
+            case Tank::TankColor::yellow: drawTexture = tankYellow; break;
             }
+
             Rectangle dest = {
                 (float)x + (float)CELL_SIZE / 2,
                 (float)y + (float)CELL_SIZE / 2,
@@ -96,58 +105,20 @@ void Renderer::drawTanks(Player& playerOne, Player& playerTwo) {
                 (float)CELL_SIZE
             };
             Vector2 origin = { (float)CELL_SIZE / 2, (float)CELL_SIZE / 2 };
-            float angle = tank.getAngle();
+
             DrawTexturePro(
-                drawTexture,                                                         // la textura
-                { 0, 0, (float)drawTexture.width, (float)drawTexture.height },       // rectángulo fuente: { 0, 0, ancho, alto de la imagen }
-                dest,                                                                // rectángulo destino: { x, y, CELL_SIZE, CELL_SIZE }
-                origin,                                                              // punto de rotación: { CELL_SIZE/2, CELL_SIZE/2 }
-                angle,                                                               // ángulo de rotación
-                WHITE                                                                // tinte de color
+                drawTexture,
+                { 0, 0, (float)drawTexture.width, (float)drawTexture.height },
+                dest,
+                origin,
+                tank.getAngle(),
+                WHITE
             );
-            if (selected) {
+
+            if (tank.isSelected()) {
                 DrawRectangleLines(x, y, CELL_SIZE, CELL_SIZE, WHITE);
             }
         }
-
-
-    }
-    for (int j = 0; j < 4; j++) {
-        // Jugador 2
-        Tank& tank2 = playerTwo.getTank(j);
-        if (tank2.isAlive()) {
-            int x2 = tank2.getPosition().col * CELL_SIZE;
-            int y2 = tank2.getPosition().row * CELL_SIZE;
-            bool selected2 = tank2.isSelected();
-            Tank::TankColor color2 = tank2.getTankColor();
-            Texture2D drawTexture;
-            switch (color2) {
-            case Tank::TankColor::blue:   drawTexture = tankBlue;     break;
-            case Tank::TankColor::cyan:   drawTexture = tankCyan;  break;
-            case Tank::TankColor::red:    drawTexture = tankRed;      break;
-            case Tank::TankColor::yellow: drawTexture = tankYellow;   break;
-            }
-            Rectangle dest = {
-                (float)x2 + (float)CELL_SIZE / 2,
-                (float)y2 + (float)CELL_SIZE / 2,
-                (float)CELL_SIZE,
-                (float)CELL_SIZE
-            };
-            Vector2 origin = { (float)CELL_SIZE / 2, (float)CELL_SIZE / 2 };
-            float angle = tank2.getAngle();
-            DrawTexturePro(
-                drawTexture,                                                         // la textura
-                { 0, 0, (float)drawTexture.width, (float)drawTexture.height },       // rectángulo fuente: { 0, 0, ancho, alto de la imagen }
-                dest,                                                                // rectángulo destino: { x, y, CELL_SIZE, CELL_SIZE }
-                origin,                                                              // punto de rotación: { CELL_SIZE/2, CELL_SIZE/2 }
-                angle,                                                               // ángulo de rotación
-                WHITE                                                                // tinte de color
-            );
-            if (selected2) {
-                DrawRectangleLines(x2, y2, CELL_SIZE, CELL_SIZE, WHITE);
-            }
-        }
-
     }
 }
 
@@ -173,29 +144,31 @@ void Renderer::drawBulletTrail(const BulletPath& shot, const Map& map) {
 }
 
 void Renderer::drawHUD(Player& player1, Player& player2) {
+    // jugador 1: azul y rojo, lado izquierdo
     for (int i = 0; i < 4; i++) {
         Tank& tank = player1.getTank(i);
-        int health = tank.getHealth();
         const char* colorName;
         switch (tank.getTankColor()) {
-            case Tank::TankColor::blue:   colorName = "Azul";    break;
-            case Tank::TankColor::red:    colorName = "Rojo";    break;
-            default:                      colorName = "?";       break;
+        case Tank::TankColor::blue:   colorName = "Azul";     break;
+        case Tank::TankColor::red:    colorName = "Rojo";     break;
+        case Tank::TankColor::cyan:   colorName = "Celeste";  break;
+        case Tank::TankColor::yellow: colorName = "Amarillo"; break;
+        default:                      colorName = "?";        break;
         }
-        int x = i * 150 + 10;
-        DrawText(TextFormat("%s: %d", colorName, health), x, 715, 20, BLACK);
+        DrawText(TextFormat("%s: %d", colorName, tank.getHealth()), i * 150 + 10, 715, 20, BLACK);
     }
+    // jugador 2: celeste y amarillo, lado derecho
     for (int i = 0; i < 4; i++) {
-        Tank& tank2 = player2.getTank(i);
-        int health2 = tank2.getHealth();
-        const char* colorName2;
-        switch (tank2.getTankColor()) {
-            case Tank::TankColor::cyan:   colorName2 = "Celeste";    break;
-            case Tank::TankColor::yellow:    colorName2 = "Amarillo";    break;
-            default:                      colorName2 = "?";       break;
+        Tank& tank = player2.getTank(i);
+        const char* colorName;
+        switch (tank.getTankColor()) {
+        case Tank::TankColor::cyan:   colorName = "Celeste";  break;
+        case Tank::TankColor::yellow: colorName = "Amarillo"; break;
+        case Tank::TankColor::blue:   colorName = "Azul";     break;
+        case Tank::TankColor::red:    colorName = "Rojo";     break;
+        default:                      colorName = "?";        break;
         }
-        int x = i * 165 + 650;
-        DrawText(TextFormat("%s: %d", colorName2, health2), x, 715, 20, BLACK);
+        DrawText(TextFormat("%s: %d", colorName, tank.getHealth()), i * 165 + 650, 715, 20, BLACK);
     }
 }
 
@@ -219,7 +192,7 @@ void Renderer::drawPowerUps(Player& player1, Player& player2) {
         case PowerUpType::movePrecision:   powerUpTexture = movePrecision;  break;
         case PowerUpType::attackPrecision: powerUpTexture = attackPrecision;  break;
         case PowerUpType::attackPower:     powerUpTexture = attackPower;     break;
-        //default:                           powerUpTexture = WHITE;   break;
+            //default:                           powerUpTexture = WHITE;   break;
         }
 
 

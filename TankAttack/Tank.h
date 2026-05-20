@@ -1,5 +1,6 @@
 #pragma once
 #include "Pathfinding.h"
+#include "PathfindingStrategy.h"
 
 class Tank
 {
@@ -18,15 +19,14 @@ public:
     };
 
     Tank(Position pos, TankColor color);
+    ~Tank();
 
-    //Setters
-
+    // set
     void setSelected(bool value);
     void setPosition(Position pos);
     void setAngle(float angle);
 
-    //Getters
-
+    // get
     int getHealth() const;
     bool isAlive() const;
     bool isSelected() const;
@@ -34,6 +34,7 @@ public:
     TankColor getTankColor() const;
     TankType getTankType() const;
     float getAngle() const;
+    const PathfindingStrategy* getStrategy() const;
 
     void receiveDamage(int damageReceived);
 
@@ -52,5 +53,6 @@ private:
     bool alive = true;
 
     float angle = 0.0f;
-};
 
+    PathfindingStrategy* strategy;
+};

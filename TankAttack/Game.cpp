@@ -1,10 +1,38 @@
 #include "Game.h"
+#include "GameCommand.h"
 #include <cstdlib>
 
-Game::Game() : player1(1), player2(2), activePowerUp({ PowerUpType::doubleTurn }) {
+Game::Game() : player1(1), player2(2) {
     renderer.initialize();
     audio.initialize();
-    audio.startBackgroundMusic();
+
+    // Observer con AudioManager 
+    listeners[listenerCount++] = &audio;
+
+    notify(GameEvent::BackgroundMusicStart);
+}
+
+Game::~Game() {
+    delete currentBullet;
+    currentBullet = nullptr;
+}
+
+void Game::notify(GameEvent event) {
+    for (int i = 0; i < listenerCount; i++) {
+        listeners[i]->onGameEvent(event);
+    }
+}
+
+void Game::buildBlockedArray(bool* blocked) const {
+    for (int p = 0; p < 2; p++) {
+        const Player& pl = (p == 0) ? player1 : player2;
+        for (int t = 0; t < 4; t++) {
+            const Tank& tank = pl.getTank(t);
+            if (tank.isAlive()) {
+                blocked[map.coordsToNode(tank.getPosition().row, tank.getPosition().col)] = true;
+            }
+        }
+    }
 }
 
 void Game::run() {
@@ -24,14 +52,14 @@ void Game::handleInput() {
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             int mx = GetMouseX(), my = GetMouseY();
             if (mx >= 565 && mx <= 715 && my >= 430 && my <= 480) {
-                audio.playButtonClick();
+                notify(GameEvent::ButtonClick);
                 renderer.close();
             }
         }
         return;
     }
 
-    // seleccionar tanque o mover
+    // click izquierdo: seleccionar tanque o mover
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         int clickCol = GetMouseX() / CELL_SIZE;
         int clickRow = GetMouseY() / CELL_SIZE;
@@ -49,14 +77,14 @@ void Game::handleInput() {
                     tank.getPosition().row == clickRow &&
                     tank.getPosition().col == clickCol) {
                     tank.setSelected(true);
-                    audio.playTankSelect();
+                    notify(GameEvent::TankSelect);
                     selectedTank = &tank;
                     break;
                 }
             }
         }
         else {
-            // cambiar selección a otro tanque del mismo jugador
+            // intentar cambiar selección a otro tanque del mismo jugador
             bool clickedAnotherTank = false;
             for (int i = 0; i < 4; i++) {
                 Tank& tank = currentPlayer.getTank(i);
@@ -84,85 +112,19 @@ void Game::handleInput() {
                     }
                 }
 
-                // mover el tanque al destino
                 if (map.getCell(clickRow, clickCol).type == CellType::free && !cellOccupied) {
-                    Position origin = { selectedTank->getPosition().row, selectedTank->getPosition().col };
-                    Position destination = { clickRow, clickCol };
+                    bool usePrecision = (hasPendingPowerUp[currentTurn] &&
+                        pendingPowerUp[currentTurn].type == PowerUpType::movePrecision);
 
-                    delete currentBullet;
-                    currentBullet = nullptr;
-
-                    int bfsProb = 50;
-                    int dijkstraProb = 80;
-
-                    // movePrecision: aplica solo si el power-up es del jugador actual
-                    if (hasPendingPowerUp &&
-                        pendingPowerUpOwner == currentTurn &&
-                        activePowerUp.type == PowerUpType::movePrecision) {
-                        bfsProb = 90;
-                        dijkstraProb = 90;
-                    }
-
-                    // marcar celdas ocupadas por tanques
-                    bool blocked[ROWS * COLS] = {};
-                    for (int p = 0; p < 2; p++) {
-                        Player& pl = (p == 0) ? player1 : player2;
-                        for (int t = 0; t < 4; t++) {
-                            Tank& tank = pl.getTank(t);
-                            if (tank.isAlive()) {
-                                blocked[map.coordsToNode(tank.getPosition().row, tank.getPosition().col)] = true;
-                            }
-                        }
-                    }
-                    // el tanque que se mueve no se bloquea a sí mismo
-                    blocked[map.coordsToNode(origin.row, origin.col)] = false;
-
-                    currentPath = Path();
-                    currentPath = Pathfinding::calculatePath(map, origin, destination,
-                        selectedTank->getTankType() == Tank::TankType::BFS, blocked, bfsProb, dijkstraProb);
-
-                    if (currentPath.length > 0) {
-                        int destRow, destCol;
-                        map.nodeToCoords(currentPath.nodes[currentPath.length - 1], destRow, destCol);
-                        selectedTank->setPosition({ destRow, destCol });
-
-                        if (currentPath.length >= 2) {
-                            int preDestRow, preDestCol;
-                            map.nodeToCoords(currentPath.nodes[currentPath.length - 2], preDestRow, preDestCol);
-                            int rowDiff = preDestRow - destRow;
-                            int colDiff = preDestCol - destCol;
-
-                            float angle = 0.0f;
-                            if (rowDiff > 0 && colDiff == 0) angle = 0.0f;
-                            else if (rowDiff < 0 && colDiff == 0) angle = 180.0f;
-                            else if (rowDiff == 0 && colDiff > 0) angle = 270.0f;
-                            else if (rowDiff == 0 && colDiff < 0) angle = 90.0f;
-                            else if (rowDiff > 0 && colDiff > 0)  angle = 315.0f;
-                            else if (rowDiff > 0 && colDiff < 0)  angle = 45.0f;
-                            else if (rowDiff < 0 && colDiff > 0)  angle = 225.0f;
-                            else if (rowDiff < 0 && colDiff < 0)  angle = 135.0f;
-                            selectedTank->setAngle(angle);
-                        }
-                    }
-
-                    selectedTank->setSelected(false);
-                    selectedTank = nullptr;
-
-                    if (currentTurn == 1) powerUpMessage1 = "";
-                    else                  powerUpMessage2 = "";
-
-                    // limpiar power-up solo al ejecutar la acción, y solo si era del jugador actual
-                    if (hasPendingPowerUp && pendingPowerUpOwner == currentTurn) {
-                        hasPendingPowerUp = false;
-                        pendingPowerUpOwner = 0;
-                    }
-
-                    nextTurn();
+                    // command pattern para mover
+                    MoveCommand cmd(selectedTank, { clickRow, clickCol }, usePrecision);
+                    cmd.execute(*this);
                 }
             }
         }
     }
 
+    // click derecho: disparar
     if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
         if (selectedTank == nullptr) return;
 
@@ -171,98 +133,23 @@ void Game::handleInput() {
 
         if (clickRow < 0 || clickRow >= ROWS || clickCol < 0 || clickCol >= COLS) return;
 
-        Position origin = selectedTank->getPosition();
-        Position target = { clickRow, clickCol };
+        bool myPowerUp = hasPendingPowerUp[currentTurn];
+        bool usePrecisionShot = myPowerUp && pendingPowerUp[currentTurn].type == PowerUpType::attackPrecision;
+        bool fullPower = myPowerUp && pendingPowerUp[currentTurn].type == PowerUpType::attackPower;
 
-        int rowDiff = target.row - origin.row;
-        int colDiff = target.col - origin.col;
-
-        float angle = 0.0f;
-        if (rowDiff < 0 && colDiff == 0) angle = 0.0f;
-        else if (rowDiff > 0 && colDiff == 0) angle = 180.0f;
-        else if (rowDiff == 0 && colDiff > 0) angle = 90.0f;
-        else if (rowDiff == 0 && colDiff < 0) angle = 270.0f;
-        else if (rowDiff < 0 && colDiff > 0)  angle = 45.0f;
-        else if (rowDiff < 0 && colDiff < 0)  angle = 315.0f;
-        else if (rowDiff > 0 && colDiff > 0)  angle = 135.0f;
-        else if (rowDiff > 0 && colDiff < 0)  angle = 225.0f;
-        selectedTank->setAngle(angle);
-
-        currentPath = Path();
-
-        delete currentBullet;
-        currentBullet = nullptr;
-
-        BulletPath trail;
-        bool myPowerUp = hasPendingPowerUp && pendingPowerUpOwner == currentTurn;
-
-        // attackPrecision: la bala sigue A* hacia el objetivo
-        if (myPowerUp && activePowerUp.type == PowerUpType::attackPrecision) {
-            trail = Pathfinding::calculateprecisionShot(map, origin, target, player1, player2);
-        }
-        else {
-            trail = Pathfinding::calculateBulletPath(map, origin, target, player1, player2);
-        }
-
-        // attackPower: bala con 100% de daño
-        bool fullPower = myPowerUp && activePowerUp.type == PowerUpType::attackPower;
-        currentBullet = new Bullet(trail, selectedTank, fullPower);
-        audio.playShot();
-        dealBulletDamage(*currentBullet);
-
-        // limpiar power-up solo si era del jugador actual
-        if (myPowerUp) {
-            hasPendingPowerUp = false;
-            pendingPowerUpOwner = 0;
-        }
-
-        selectedTank->setSelected(false);
-        selectedTank = nullptr;
-
-        if (currentTurn == 1) powerUpMessage1 = "";
-        else                  powerUpMessage2 = "";
-
-        nextTurn();
+        // command pattern para disparar
+        ShootCommand cmd(selectedTank, { clickRow, clickCol }, usePrecisionShot, fullPower);
+        cmd.execute(*this);
     }
 
+    // shift: activar power-up
     if (IsKeyPressed(KEY_LEFT_SHIFT)) {
         Player& currentPlayer = (currentTurn == 1) ? player1 : player2;
         if (!currentPlayer.hasPowerUps()) return;
 
-        if (selectedTank != nullptr) {
-            selectedTank->setSelected(false);
-            selectedTank = nullptr;
-        }
-
-        activePowerUp = currentPlayer.usePowerUp();
-        audio.playPowerUpActivate();
-
-        const char* message = "";
-        switch (activePowerUp.type) {
-        case PowerUpType::doubleTurn:      message = "Power-up: Doble Turno";             break;
-        case PowerUpType::movePrecision:   message = "Power-up: Precision de Movimiento"; break;
-        case PowerUpType::attackPower:     message = "Power-up: Poder de Ataque";         break;
-        case PowerUpType::attackPrecision: message = "Power-up: Precision de Ataque";     break;
-        default:                                                                            break;
-        }
-
-        if (currentTurn == 1) powerUpMessage1 = message;
-        else                  powerUpMessage2 = message;
-
-        if (activePowerUp.type == PowerUpType::doubleTurn) {
-            // los turnos extra se activan cuando le vuelva a tocar al dueño
-            pendingExtraTurns = 1;
-            doubleTurnOwner = currentTurn;
-            hasPendingPowerUp = false;
-            pendingPowerUpOwner = 0;
-        }
-        else {
-            // los demás power-ups se aplican en el próximo turno del dueño
-            hasPendingPowerUp = true;
-            pendingPowerUpOwner = currentTurn;
-        }
-
-        nextTurn();
+        // command pattern para power-up
+        PowerUpCommand cmd(currentTurn);
+        cmd.execute(*this);
     }
 }
 
@@ -293,8 +180,8 @@ void Game::dealBulletDamage(const Bullet& bullet) {
                     t.receiveDamage(50);
             }
 
-            audio.playHit();
-            if (!t.isAlive()) audio.playExplosion();
+            notify(GameEvent::Hit);
+            if (!t.isAlive()) notify(GameEvent::Explosion);
         }
     }
 }
@@ -314,8 +201,8 @@ void Game::render() {
     renderer.drawMap(map);
     renderer.drawPath(currentPath, map);
     renderer.drawTanks(player1, player2);
-    hub = LoadTexture("textures/hub/hub.png");
-    DrawTexture(hub, 0, 704, WHITE);
+    renderer.drawHub();
+
     if (currentBullet != nullptr) {
         renderer.drawBulletTrail(currentBullet->getBulletPath(), map);
     }
@@ -376,7 +263,7 @@ void Game::nextTurn() {
     }
     else {
         currentTurn = (currentTurn == 1) ? 2 : 1;
-        audio.playTurnChange();
+        notify(GameEvent::TurnChange);
 
         // si hay turnos extra pendientes y ahora le toca al dueño, activarlos
         if (pendingExtraTurns > 0 && currentTurn == doubleTurnOwner) {
@@ -397,7 +284,7 @@ void Game::randomPowerUp() {
 
         PowerUpType type = static_cast<PowerUpType>(rand() % 4);
         player.addPowerUp({ type });
-        audio.playPowerUpPickup();
+        notify(GameEvent::PowerUpPickup);
     }
 }
 
@@ -413,8 +300,8 @@ void Game::checkEliminationWin() {
     else if (!p1HasTanks)           result = GameResult::Player2Wins;
     else                            result = GameResult::Player1Wins;
 
-    audio.stopBackgroundMusic();
-    audio.playResults();
+    notify(GameEvent::BackgroundMusicStop);
+    notify(GameEvent::Results);
     gameOver = true;
 }
 
@@ -431,7 +318,7 @@ void Game::checkTimeWin() {
     else if (p2Count > p1Count) result = GameResult::Player2Wins;
     else                        result = GameResult::Draw;
 
-    audio.stopBackgroundMusic();
-    audio.playResults();
+    notify(GameEvent::BackgroundMusicStop);
+    notify(GameEvent::Results);
     gameOver = true;
 }

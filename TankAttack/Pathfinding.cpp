@@ -38,8 +38,9 @@ bool Pathfinding::hasLineOfSight(const Map& map, Position a, Position b) {
     int steps = abs(rowDiff) > abs(colDiff) ? abs(rowDiff) : abs(colDiff);
     if (steps == 0) return true;
 
+    // interpolar la posición en cada paso para trazar la línea
+
     for (int i = 1; i <= steps; i++) {
-        // interpolar la posición en cada paso para trazar la línea
         // se suma 0.5f para no redondear hacia abajo
         int row = a.row + (int)((rowDiff * i) / (float)steps + 0.5f);
         int col = a.col + (int)((colDiff * i) / (float)steps + 0.5f);
@@ -146,42 +147,68 @@ Path Pathfinding::Dijkstra(const Map& map, Position origin, Position destination
 
 Path Pathfinding::advanceUntilObstacle(const Map& map, Position origin, Position destination, const bool* blocked) {
     Path path;
-    int rowDiff = destination.row - origin.row;
-    int colDiff = destination.col - origin.col;
-    int steps = abs(rowDiff) > abs(colDiff) ? abs(rowDiff) : abs(colDiff);
 
-    for (int i = 0; i <= steps; i++) {
-        int row = origin.row + (int)((rowDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
-        int col = origin.col + (int)((colDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
+    int row = origin.row;
+    int col = origin.col;
 
-        if (map.getCell(row, col).type == CellType::obstacle) break;
-        // no pasar por celdas ocupadas por tanques
-        if (i > 0 && blocked[map.coordsToNode(row, col)]) break;
+    // punto de partida
+    path.nodes[path.length++] = map.coordsToNode(row, col);
 
-        path.nodes[path.length] = map.coordsToNode(row, col);
-        path.length++;
+    int rowStep = 0, colStep = 0;
+    if (destination.row > row) rowStep = 1;
+    else if (destination.row < row) rowStep = -1;
+    if (destination.col > col) colStep = 1;
+    else if (destination.col < col) colStep = -1;
+
+    // avanzar primero en filas, luego en columnas 
+    while (row != destination.row) {
+        int nextRow = row + rowStep;
+        if (map.getCell(nextRow, col).type == CellType::obstacle) return path;
+        if (blocked[map.coordsToNode(nextRow, col)]) return path;
+        row = nextRow;
+        path.nodes[path.length++] = map.coordsToNode(row, col);
     }
+    while (col != destination.col) {
+        int nextCol = col + colStep;
+        if (map.getCell(row, nextCol).type == CellType::obstacle) return path;
+        if (blocked[map.coordsToNode(row, nextCol)]) return path;
+        col = nextCol;
+        path.nodes[path.length++] = map.coordsToNode(row, col);
+    }
+
     return path;
 }
 
 
-// agrega las celdas de una línea recta entre dos posiciones a una ruta existente
-void Pathfinding::addSegment(const Map& map, Path& path, Position from, Position to, bool skipFirst) {
-    int rowDiff = to.row - from.row;
-    int colDiff = to.col - from.col;
-    int steps = abs(rowDiff) > abs(colDiff) ? abs(rowDiff) : abs(colDiff);
+// blocked puede ser nullptr si no se necesita verificar tanques
+void Pathfinding::addSegment(const Map& map, Path& path, Position from, Position to, bool skipFirst, const bool* blocked) {
+    int row = from.row;
+    int col = from.col;
 
-    // si skipFirst es true entonces empieza en 1 para no repetir el punto de inicio
-    int start = skipFirst ? 1 : 0;
+    int rowStep = 0, colStep = 0;
+    if (to.row > row) rowStep = 1;
+    else if (to.row < row) rowStep = -1;
+    if (to.col > col) colStep = 1;
+    else if (to.col < col) colStep = -1;
 
-    for (int i = start; i <= steps; i++) {
-        int row = from.row + (int)((rowDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
-        int col = from.col + (int)((colDiff * i) / (float)(steps == 0 ? 1 : steps) + 0.5f);
+    // agregar punto de inicio si no se omite
+    if (!skipFirst) {
+        path.nodes[path.length++] = map.coordsToNode(row, col);
+    }
 
-        if (map.getCell(row, col).type == CellType::obstacle) break;
-
-        path.nodes[path.length] = map.coordsToNode(row, col);
-        path.length++;
+    // avanzar en filas primero
+    while (row != to.row) {
+        row += rowStep;
+        if (map.getCell(row, col).type == CellType::obstacle) return;
+        if (blocked && blocked[map.coordsToNode(row, col)]) return;
+        path.nodes[path.length++] = map.coordsToNode(row, col);
+    }
+    // luego en columnas
+    while (col != to.col) {
+        col += colStep;
+        if (map.getCell(row, col).type == CellType::obstacle) return;
+        if (blocked && blocked[map.coordsToNode(row, col)]) return;
+        path.nodes[path.length++] = map.coordsToNode(row, col);
     }
 }
 
@@ -190,8 +217,15 @@ Path Pathfinding::randomMovement(const Map& map, Position origin, Position desti
     // primero línea vista directa al destino
     if (hasLineOfSight(map, origin, destination)) {
         Path path;
-        addSegment(map, path, origin, destination, false);
-        return path;
+        addSegment(map, path, origin, destination, false, blocked);
+
+        // verificar que addSegment llegó completamente al destino
+        if (path.length > 0) {
+            int lastRow, lastCol;
+            map.nodeToCoords(path.nodes[path.length - 1], lastRow, lastCol);
+            if (lastRow == destination.row && lastCol == destination.col)
+                return path;
+        }
     }
 
     // si no hay línea vista entonces se elige una celda libre aleatoria dentro del radio
@@ -213,12 +247,17 @@ Path Pathfinding::randomMovement(const Map& map, Position origin, Position desti
         }
     }
 
-    // si no sirve, se intenta línea vista desde la intermedia al destino
+    // si hay línea vista desde la intermedia al destino
     if (hasLineOfSight(map, midpoint, destination)) {
         Path path;
-        addSegment(map, path, origin, midpoint, false);
-        addSegment(map, path, midpoint, destination, true);
-        return path;
+        addSegment(map, path, origin, midpoint, false, blocked);
+        addSegment(map, path, midpoint, destination, true, blocked);
+        if (path.length > 0) {
+            int lastRow, lastCol;
+            map.nodeToCoords(path.nodes[path.length - 1], lastRow, lastCol);
+            if (lastRow == destination.row && lastCol == destination.col)
+                return path;
+        }
     }
 
     // si ningún intento funcionó, se avanza hasta donde sea posible
@@ -262,7 +301,7 @@ BulletPath Pathfinding::traceBulletWithBounces(const Map& map, Position origin, 
     int currentCol = origin.col;
     int bounces = 0;
     int moves = 0;
-    int maxMoves = ROWS + COLS;
+    int maxMoves = ROWS * COLS;
     int consecutiveBounces = 0;
 
     // agrega posición inicial
@@ -385,18 +424,19 @@ int Pathfinding::heuristic(Position a, Position b) {
     return abs(a.row - b.row) + abs(a.col - b.col);
 }
 
-BulletPath Pathfinding:: precisionShot(const Map& map, Position origin,
+BulletPath Pathfinding::precisionShot(const Map& map, Position origin,
     Position target,
     Player& player1, Player& player2) {
     int totalNodes = ROWS * COLS;
     int originNode = map.coordsToNode(origin.row, origin.col);
     int destNode = map.coordsToNode(target.row, target.col);
 
-    static int gCost[ROWS * COLS];
-    static int fCost[ROWS * COLS];
-    static int parent[ROWS * COLS];
-    static bool visited[ROWS * COLS];
-    static bool inQueue[ROWS * COLS];
+    // arrays locales en lugar de static para evitar estado residual entre llamadas
+    int gCost[ROWS * COLS];
+    int fCost[ROWS * COLS];
+    int parent[ROWS * COLS];
+    bool visited[ROWS * COLS];
+    bool inQueue[ROWS * COLS];
 
     for (int i = 0; i < totalNodes; i++) {
         gCost[i] = 999999;
@@ -407,25 +447,21 @@ BulletPath Pathfinding:: precisionShot(const Map& map, Position origin,
     }
 
     gCost[originNode] = 0;
-
-    // convertir originNode a coordenadas para calcular h
-    Position originPos = origin;
-    fCost[originNode] = heuristic(originPos, target);
+    fCost[originNode] = heuristic(origin, target);
     inQueue[originNode] = true;
 
     for (int iter = 0; iter < totalNodes; iter++) {
         // buscar el nodo con menor fCost
-        int current= -1;
+        int current = -1;
         for (int i = 0; i < totalNodes; i++) {
             if (inQueue[i] && !visited[i]) {
-                if (current== -1 || fCost[i] < fCost[current]) {
-                    current= i;
-                }
+                if (current == -1 || fCost[i] < fCost[current])
+                    current = i;
             }
         }
 
-        if (current== -1) break;  // no hay camino
-        if (current== destNode) break;   
+        if (current == -1) break;
+        if (current == destNode) break;
 
         visited[current] = true;
         inQueue[current] = false;
@@ -438,18 +474,29 @@ BulletPath Pathfinding:: precisionShot(const Map& map, Position origin,
             int neighbor = neighbors[i];
             if (visited[neighbor]) continue;
 
-            int tentativeG = gCost[current] + 1;  // el peso g es igual que en Dijkstra
+            // no atravesar tanques intermedios (solo el destino puede tener un tanque)
+            if (neighbor != destNode) {
+                int nRow, nCol;
+                map.nodeToCoords(neighbor, nRow, nCol);
+                bool hasTank = false;
+                for (int p = 1; p <= 2 && !hasTank; p++) {
+                    Player& pl = (p == 1) ? player1 : player2;
+                    for (int t = 0; t < 4 && !hasTank; t++) {
+                        Tank& tk = pl.getTank(t);
+                        if (tk.isAlive() && tk.getPosition().row == nRow && tk.getPosition().col == nCol)
+                            hasTank = true;
+                    }
+                }
+                if (hasTank) continue;
+            }
 
+            int tentativeG = gCost[current] + 1;
             if (tentativeG < gCost[neighbor]) {
                 parent[neighbor] = current;
                 gCost[neighbor] = tentativeG;
-
-                // reconstruir position del vecino para calcular h
                 int nRow, nCol;
                 map.nodeToCoords(neighbor, nRow, nCol);
-                Position neighborPos = { nRow, nCol };
-
-                fCost[neighbor] = tentativeG + heuristic(neighborPos, target);
+                fCost[neighbor] = tentativeG + heuristic({ nRow, nCol }, target);
                 inQueue[neighbor] = true;
             }
         }
@@ -460,15 +507,14 @@ BulletPath Pathfinding:: precisionShot(const Map& map, Position origin,
 
     Path basePath = reconstructPath(map, parent, originNode, destNode);
 
-    // copiar nodo por nodo a BulletPath
+    // copiar nodo por nodo a BulletPath y detectar el primer tanque golpeado
     BulletPath result;
     for (int i = 0; i < basePath.length && result.length < MAX_BULLET_STEPS; i++) {
         int node = basePath.nodes[i];
         result.nodes[result.length++] = node;
 
-        if (i == 0) continue; // para que no se pegue a sí mismo quien dispara
+        if (i == 0) continue; // no golpear al que dispara
 
-        // verificar si hay tanque en el nodo
         int nRow, nCol;
         map.nodeToCoords(node, nRow, nCol);
 

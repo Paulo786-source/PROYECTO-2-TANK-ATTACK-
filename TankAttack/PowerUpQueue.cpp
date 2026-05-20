@@ -1,6 +1,10 @@
 #include "PowerUpQueue.h"
 
-PowerUpQueue::PowerUpQueue() : front(0), back(0), count(0) {}
+PowerUpQueue::PowerUpQueue() : front(0), back(0), count(0) {
+    for (int i = 0; i < MAX_POWERUPS; i++) {
+        items[i] = { PowerUpType::doubleTurn };
+    }
+}
 
 void PowerUpQueue::enqueue(PowerUp p) {
     if (count >= MAX_POWERUPS) return;

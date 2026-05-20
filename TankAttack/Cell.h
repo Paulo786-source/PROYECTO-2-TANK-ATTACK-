@@ -7,8 +7,6 @@ enum class CellType {
 
 struct Cell {
     CellType type;
-    bool hasTank;
-    bool hasBullet;
 
-    Cell() : type(CellType::free), hasTank(false), hasBullet(false) {}
+    Cell() : type(CellType::free) {}
 };
