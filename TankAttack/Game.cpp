@@ -31,18 +31,18 @@ void Game::handleInput() {
         return;
     }
 
+    // seleccionar tanque o mover
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         int clickCol = GetMouseX() / CELL_SIZE;
         int clickRow = GetMouseY() / CELL_SIZE;
 
-        // verificar que el click esté dentro del mapa
         if (clickRow < 0 || clickRow >= ROWS || clickCol < 0 || clickCol >= COLS)
             return;
 
         Player& currentPlayer = (currentTurn == 1) ? player1 : player2;
 
         if (selectedTank == nullptr) {
-            // buscar si hay un tanque del jugador actual en esa celda
+            // seleccionar un tanque del jugador actual
             for (int i = 0; i < 4; i++) {
                 Tank& tank = currentPlayer.getTank(i);
                 if (tank.isAlive() &&
@@ -56,16 +56,14 @@ void Game::handleInput() {
             }
         }
         else {
-            // verificar si clickeó sobre otro tanque del mismo jugador
+            // cambiar selección a otro tanque del mismo jugador
             bool clickedAnotherTank = false;
             for (int i = 0; i < 4; i++) {
                 Tank& tank = currentPlayer.getTank(i);
                 if (tank.isAlive() &&
                     tank.getPosition().row == clickRow &&
                     tank.getPosition().col == clickCol) {
-                    // deseleccionar el anterior
                     selectedTank->setSelected(false);
-                    // seleccionar el nuevo
                     tank.setSelected(true);
                     selectedTank = &tank;
                     clickedAnotherTank = true;
@@ -74,6 +72,7 @@ void Game::handleInput() {
             }
 
             if (!clickedAnotherTank) {
+                // verificar si la celda destino está ocupada
                 bool cellOccupied = false;
                 for (int i = 0; i < 4; i++) {
                     Tank& t1 = player1.getTank(i);
@@ -87,9 +86,7 @@ void Game::handleInput() {
 
                 // mover el tanque al destino
                 if (map.getCell(clickRow, clickCol).type == CellType::free && !cellOccupied) {
-                    int rowTank = selectedTank->getPosition().row;
-                    int colTank = selectedTank->getPosition().col;
-                    Position origin = { rowTank, colTank };
+                    Position origin = { selectedTank->getPosition().row, selectedTank->getPosition().col };
                     Position destination = { clickRow, clickCol };
 
                     delete currentBullet;
@@ -98,13 +95,13 @@ void Game::handleInput() {
                     int bfsProb = 50;
                     int dijkstraProb = 80;
 
-                    // si hay power-up de precisión activo, aumenta la probabilidad al 90%
-                    if (hasPendingPowerUp && activePowerUp.type == PowerUpType::movePrecision) {
+                    // movePrecision: aplica solo si el power-up es del jugador actual
+                    if (hasPendingPowerUp &&
+                        pendingPowerUpOwner == currentTurn &&
+                        activePowerUp.type == PowerUpType::movePrecision) {
                         bfsProb = 90;
                         dijkstraProb = 90;
                     }
-
-                    hasPendingPowerUp = false;
 
                     // marcar celdas ocupadas por tanques
                     bool blocked[ROWS * COLS] = {};
@@ -113,8 +110,7 @@ void Game::handleInput() {
                         for (int t = 0; t < 4; t++) {
                             Tank& tank = pl.getTank(t);
                             if (tank.isAlive()) {
-                                int node = map.coordsToNode(tank.getPosition().row, tank.getPosition().col);
-                                blocked[node] = true;
+                                blocked[map.coordsToNode(tank.getPosition().row, tank.getPosition().col)] = true;
                             }
                         }
                     }
@@ -126,39 +122,41 @@ void Game::handleInput() {
                         selectedTank->getTankType() == Tank::TankType::BFS, blocked, bfsProb, dijkstraProb);
 
                     if (currentPath.length > 0) {
-                        int lastNode = currentPath.nodes[currentPath.length - 1];
-                        int destRow;
-                        int destCol;
-                        map.nodeToCoords(lastNode, destRow, destCol);
+                        int destRow, destCol;
+                        map.nodeToCoords(currentPath.nodes[currentPath.length - 1], destRow, destCol);
                         selectedTank->setPosition({ destRow, destCol });
+
                         if (currentPath.length >= 2) {
-                            int secondlastNode = currentPath.nodes[currentPath.length - 2];
-                            int preDestRow;
-                            int preDestCol;
-                            map.nodeToCoords(secondlastNode, preDestRow, preDestCol);
+                            int preDestRow, preDestCol;
+                            map.nodeToCoords(currentPath.nodes[currentPath.length - 2], preDestRow, preDestCol);
                             int rowDiff = preDestRow - destRow;
                             int colDiff = preDestCol - destCol;
 
                             float angle = 0.0f;
-                            if (rowDiff > 0 && colDiff == 0) angle = 0.0f;    // viene de abajo, apunta arriba
-                            else if (rowDiff < 0 && colDiff == 0) angle = 180.0f;  // viene de arriba, apunta abajo
-                            else if (rowDiff == 0 && colDiff > 0) angle = 270.0f;  // viene de la derecha, apunta izquierda
-                            else if (rowDiff == 0 && colDiff < 0) angle = 90.0f;   // viene de la izquierda, apunta derecha
-                            else if (rowDiff > 0 && colDiff > 0)  angle = 315.0f;  // diagonal
-                            else if (rowDiff > 0 && colDiff < 0)  angle = 45.0f;   // diagonal
-                            else if (rowDiff < 0 && colDiff > 0)  angle = 225.0f;  // diagonal
-                            else if (rowDiff < 0 && colDiff < 0)  angle = 135.0f;  // diagonal
-
+                            if (rowDiff > 0 && colDiff == 0) angle = 0.0f;
+                            else if (rowDiff < 0 && colDiff == 0) angle = 180.0f;
+                            else if (rowDiff == 0 && colDiff > 0) angle = 270.0f;
+                            else if (rowDiff == 0 && colDiff < 0) angle = 90.0f;
+                            else if (rowDiff > 0 && colDiff > 0)  angle = 315.0f;
+                            else if (rowDiff > 0 && colDiff < 0)  angle = 45.0f;
+                            else if (rowDiff < 0 && colDiff > 0)  angle = 225.0f;
+                            else if (rowDiff < 0 && colDiff < 0)  angle = 135.0f;
                             selectedTank->setAngle(angle);
                         }
-
                     }
 
                     selectedTank->setSelected(false);
                     selectedTank = nullptr;
-                    // audio.playTankMove();
+
                     if (currentTurn == 1) powerUpMessage1 = "";
                     else                  powerUpMessage2 = "";
+
+                    // limpiar power-up solo al ejecutar la acción, y solo si era del jugador actual
+                    if (hasPendingPowerUp && pendingPowerUpOwner == currentTurn) {
+                        hasPendingPowerUp = false;
+                        pendingPowerUpOwner = 0;
+                    }
+
                     nextTurn();
                 }
             }
@@ -180,15 +178,14 @@ void Game::handleInput() {
         int colDiff = target.col - origin.col;
 
         float angle = 0.0f;
-        if (rowDiff < 0 && colDiff == 0) angle = 0.0f;    // objetivo arriba
-        else if (rowDiff > 0 && colDiff == 0) angle = 180.0f;  // objetivo abajo
-        else if (rowDiff == 0 && colDiff > 0) angle = 90.0f;   // objetivo derecha
-        else if (rowDiff == 0 && colDiff < 0) angle = 270.0f;  // objetivo izquierda
-        else if (rowDiff < 0 && colDiff > 0)  angle = 45.0f;   // diagonal arriba-derecha
-        else if (rowDiff < 0 && colDiff < 0)  angle = 315.0f;  // diagonal arriba-izquierda
-        else if (rowDiff > 0 && colDiff > 0)  angle = 135.0f;  // diagonal abajo-derecha
-        else if (rowDiff > 0 && colDiff < 0)  angle = 225.0f;  // diagonal abajo-izquierda
-
+        if (rowDiff < 0 && colDiff == 0) angle = 0.0f;
+        else if (rowDiff > 0 && colDiff == 0) angle = 180.0f;
+        else if (rowDiff == 0 && colDiff > 0) angle = 90.0f;
+        else if (rowDiff == 0 && colDiff < 0) angle = 270.0f;
+        else if (rowDiff < 0 && colDiff > 0)  angle = 45.0f;
+        else if (rowDiff < 0 && colDiff < 0)  angle = 315.0f;
+        else if (rowDiff > 0 && colDiff > 0)  angle = 135.0f;
+        else if (rowDiff > 0 && colDiff < 0)  angle = 225.0f;
         selectedTank->setAngle(angle);
 
         currentPath = Path();
@@ -197,63 +194,75 @@ void Game::handleInput() {
         currentBullet = nullptr;
 
         BulletPath trail;
+        bool myPowerUp = hasPendingPowerUp && pendingPowerUpOwner == currentTurn;
 
-        // para precisión de ataque la bala sigue A* hacia el objetivo
-        if (hasPendingPowerUp && activePowerUp.type == PowerUpType::attackPrecision) {
+        // attackPrecision: la bala sigue A* hacia el objetivo
+        if (myPowerUp && activePowerUp.type == PowerUpType::attackPrecision) {
             trail = Pathfinding::calculateprecisionShot(map, origin, target, player1, player2);
         }
         else {
             trail = Pathfinding::calculateBulletPath(map, origin, target, player1, player2);
         }
 
-        if (hasPendingPowerUp && activePowerUp.type == PowerUpType::attackPower) {
-            currentBullet = new Bullet(trail, selectedTank, true);
-            audio.playShot();
-            dealBulletDamage(*currentBullet);
-        }
-        else {
-            currentBullet = new Bullet(trail, selectedTank, false);
-            audio.playShot();
-            dealBulletDamage(*currentBullet);
-        }
+        // attackPower: bala con 100% de daño
+        bool fullPower = myPowerUp && activePowerUp.type == PowerUpType::attackPower;
+        currentBullet = new Bullet(trail, selectedTank, fullPower);
+        audio.playShot();
+        dealBulletDamage(*currentBullet);
 
-        hasPendingPowerUp = false;
+        // limpiar power-up solo si era del jugador actual
+        if (myPowerUp) {
+            hasPendingPowerUp = false;
+            pendingPowerUpOwner = 0;
+        }
 
         selectedTank->setSelected(false);
         selectedTank = nullptr;
+
         if (currentTurn == 1) powerUpMessage1 = "";
         else                  powerUpMessage2 = "";
-        currentTurn = (currentTurn == 1) ? 2 : 1;
-        audio.playTurnChange();
+
+        nextTurn();
     }
 
     if (IsKeyPressed(KEY_LEFT_SHIFT)) {
         Player& currentPlayer = (currentTurn == 1) ? player1 : player2;
-        if (currentPlayer.hasPowerUps()) {
-            activePowerUp = currentPlayer.usePowerUp();
-            audio.playPowerUpActivate();
+        if (!currentPlayer.hasPowerUps()) return;
 
-            const char* message = "";
-            switch (activePowerUp.type) {
-            case PowerUpType::doubleTurn:      message = "Power-up: Doble Turno";             break;
-            case PowerUpType::movePrecision:   message = "Power-up: Precision de Movimiento"; break;
-            case PowerUpType::attackPower:     message = "Power-up: Poder de Ataque";         break;
-            case PowerUpType::attackPrecision: message = "Power-up: Precision de Ataque";     break;
-            default:                           message = "";                                   break;
-            }
-
-            if (currentTurn == 1) powerUpMessage1 = message;
-            else                  powerUpMessage2 = message;
-
-            if (activePowerUp.type == PowerUpType::doubleTurn) {
-                extraTurns = 2;
-                hasPendingPowerUp = false;
-            }
-            else {
-                hasPendingPowerUp = true;
-            }
-            nextTurn();
+        if (selectedTank != nullptr) {
+            selectedTank->setSelected(false);
+            selectedTank = nullptr;
         }
+
+        activePowerUp = currentPlayer.usePowerUp();
+        audio.playPowerUpActivate();
+
+        const char* message = "";
+        switch (activePowerUp.type) {
+        case PowerUpType::doubleTurn:      message = "Power-up: Doble Turno";             break;
+        case PowerUpType::movePrecision:   message = "Power-up: Precision de Movimiento"; break;
+        case PowerUpType::attackPower:     message = "Power-up: Poder de Ataque";         break;
+        case PowerUpType::attackPrecision: message = "Power-up: Precision de Ataque";     break;
+        default:                                                                            break;
+        }
+
+        if (currentTurn == 1) powerUpMessage1 = message;
+        else                  powerUpMessage2 = message;
+
+        if (activePowerUp.type == PowerUpType::doubleTurn) {
+            // los turnos extra se activan cuando le vuelva a tocar al dueño
+            pendingExtraTurns = 1;
+            doubleTurnOwner = currentTurn;
+            hasPendingPowerUp = false;
+            pendingPowerUpOwner = 0;
+        }
+        else {
+            // los demás power-ups se aplican en el próximo turno del dueño
+            hasPendingPowerUp = true;
+            pendingPowerUpOwner = currentTurn;
+        }
+
+        nextTurn();
     }
 }
 
@@ -319,12 +328,11 @@ void Game::render() {
         DrawRectangle((GetScreenWidth() / 2 - MeasureText("Turno: Jugador 1", 20) / 2) - 5, 42.5, MeasureText("Turno: Jugador 1", 20) + 10, 25, Fade(RED, 0.5f));
         DrawText("Turno: Jugador 2", GetScreenWidth() / 2 - MeasureText("Turno: Jugador 2", 20) / 2, 45, 20, ORANGE);
     }
+
     renderer.drawHUD(player1, player2);
     renderer.drawPowerUps(player1, player2);
     DrawText(powerUpMessage1, 10, 800, 16, BLACK);
     DrawText(powerUpMessage2, 650, 800, 16, BLACK);
-
-
 
     // temporizador
     if (!gameOver) {
@@ -335,7 +343,7 @@ void Game::render() {
         DrawText(timerText, GetScreenWidth() / 2 - MeasureText(timerText, 30) / 2, 8, 30, timerColor);
     }
 
-    // ventanilla de resultado
+    // pantalla de resultado
     if (gameOver) {
         DrawRectangle(250, 250, 780, 320, Fade(BLACK, 0.85f));
         DrawRectangleLines(250, 250, 780, 320, WHITE);
@@ -350,8 +358,7 @@ void Game::render() {
         }
         DrawText(title, GetScreenWidth() / 2 - MeasureText(title, 48) / 2, 290, 48, titleColor);
 
-        const char* reason = timeUp ? "Se acabo el tiempo"
-            : "Todos los tanques destruidos";
+        const char* reason = timeUp ? "Se acabo el tiempo" : "Todos los tanques destruidos";
         DrawText(reason, GetScreenWidth() / 2 - MeasureText(reason, 22) / 2, 355, 22, LIGHTGRAY);
 
         DrawRectangle(565, 430, 150, 50, DARKBLUE);
@@ -365,11 +372,19 @@ void Game::render() {
 void Game::nextTurn() {
     if (extraTurns > 0) {
         extraTurns--;
+        currentTurn = doubleTurnOwner;
     }
     else {
         currentTurn = (currentTurn == 1) ? 2 : 1;
         audio.playTurnChange();
+
+        // si hay turnos extra pendientes y ahora le toca al dueño, activarlos
+        if (pendingExtraTurns > 0 && currentTurn == doubleTurnOwner) {
+            extraTurns = pendingExtraTurns;
+            pendingExtraTurns = 0;
+        }
     }
+
     randomPowerUp();
 }
 
@@ -378,11 +393,9 @@ void Game::randomPowerUp() {
         Player& player = (p == 1) ? player1 : player2;
 
         if (rand() % 4 != 0) continue; // 25% por jugador por turno
-
-        // no acumular muchos
         if (player.getPowerUpCount() >= MAX_POWERUPS) continue;
 
-        PowerUpType type = (PowerUpType)(rand() % 4);
+        PowerUpType type = static_cast<PowerUpType>(rand() % 4);
         player.addPowerUp({ type });
         audio.playPowerUpPickup();
     }
@@ -394,17 +407,11 @@ void Game::checkEliminationWin() {
     bool p1HasTanks = player1.hasTanks();
     bool p2HasTanks = player2.hasTanks();
 
-    if (p1HasTanks && p2HasTanks) return; // partida sigue normal
+    if (p1HasTanks && p2HasTanks) return;
 
-    if (!p1HasTanks && !p2HasTanks) {
-        result = GameResult::Draw;
-    }
-    else if (!p1HasTanks) {
-        result = GameResult::Player2Wins;
-    }
-    else {
-        result = GameResult::Player1Wins;
-    }
+    if (!p1HasTanks && !p2HasTanks) result = GameResult::Draw;
+    else if (!p1HasTanks)           result = GameResult::Player2Wins;
+    else                            result = GameResult::Player1Wins;
 
     audio.stopBackgroundMusic();
     audio.playResults();
@@ -420,7 +427,7 @@ void Game::checkTimeWin() {
         if (player2.getTank(i).isAlive()) p2Count++;
     }
 
-    if (p1Count > p2Count) result = GameResult::Player1Wins;
+    if (p1Count > p2Count)      result = GameResult::Player1Wins;
     else if (p2Count > p1Count) result = GameResult::Player2Wins;
     else                        result = GameResult::Draw;
 
