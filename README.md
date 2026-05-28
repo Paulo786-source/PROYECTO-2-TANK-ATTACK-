@@ -33,16 +33,6 @@ Autores: Paulo Centeno Flores y Máyerlin Dilana Gamboa González
 
 ---
 
-## Estructura del mapa
-
-| Parámetro | Valor |
-|-----------|-------|
-| Tamaño | 20 x 20 celdas |
-| Tamaño visual por celda | 32 x 32 píxeles |
-| Tamaño de ventana | 640 x 640 píxeles |
-
----
-
 ## Estructura de carpetas
 
 ```
