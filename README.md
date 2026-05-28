@@ -32,16 +32,3 @@ Autores: Paulo Centeno Flores y Máyerlin Dilana Gamboa González
    Agregar al inicio: `raylib.lib;winmm.lib;`
 
 ---
-
-## Estructura de carpetas
-
-```
-TankAttack/
-├── TankAttack/
-│   ├── Celda.h
-│   ├── Grafo.h
-│   ├── Mapa.h
-│   ├── Renderer.h
-│   └── main.cpp
-└── README.md
-```
