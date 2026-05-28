@@ -1,31 +1,50 @@
 #pragma once
 #include "raylib.h"
-#include "Mapa.h"
+#include "Map.h"
+#include "Player.h"
 
-const int TAMANO_CELDA = 32;
+const int CELL_SIZE = 32;
 
 class Renderer {
 public:
     Renderer();
     ~Renderer();
 
-    void inicializar();
-    void cerrar();
-    bool ventanaAbierta() const;
-    void iniciarDibujo();
-    void terminarDibujo();
+    void initialize();
+    void close();
+    bool windowOpen() const;
+    void beginFrame();
+    void endFrame();
 
-    void dibujarMapa(const Mapa& mapa);
 
-    // las siguientes funciones se implementan en las siguientes fases
-    
-    // void dibujarTanques();
-    // void dibujarRuta();
-    // void dibujarBalas();
-    // void dibujarHUD();
-    // void dibujarPowerUps();
+    void drawMap(const Map& map);
+    void drawBulletTrail(const BulletPath& shot, const Map& map);
+    void drawHub();
+
+    void drawTanks(Player& one, Player& two);
+    void drawPath(const Path& path, const Map& map);
+    void drawHUD(Player& player1, Player& player2);
+    void drawPowerUps(Player& player1, Player& player2);
 
 private:
-    int anchoVentana;
-    int altoVentana;
+    int windowWidth = 1280;
+    int windowHeight = 820;
+
+    Texture2D tankBlue = {};
+    Texture2D tankCyan = {};
+    Texture2D tankRed = {};
+    Texture2D tankYellow = {};
+    Texture2D bullet = {};
+
+    Texture2D rocks = {};
+    Texture2D floor = {};
+    Texture2D floorPath = {};
+
+    Texture2D doubleTurn = {};
+    Texture2D movePrecision = {};
+    Texture2D attackPrecision = {};
+    Texture2D attackPower = {};
+
+    Texture2D frame = {};
+    Texture2D hub = {};
 };

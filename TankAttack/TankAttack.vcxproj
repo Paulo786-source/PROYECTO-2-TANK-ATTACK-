@@ -129,7 +129,55 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AudioManager.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Gamecommand.cpp" />
+    <ClCompile Include="Graph.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Map.cpp" />
+    <ClCompile Include="Pathfinding.cpp" />
+    <ClCompile Include="Pathfindingstrategy.h" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PowerUpQueue.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Tank.cpp" />
+    <ClCompile Include="Bullet.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AudioManager.h" />
+    <ClInclude Include="Gamecommand.h" />
+    <ClInclude Include="Gameeventlistener.h" />
+    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Cell.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="Graph.h" />
+    <ClInclude Include="Map.h" />
+    <ClInclude Include="Pathfinding.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="PowerUpQueue.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Tank.h" />
+    <ClInclude Include="Bullet.h" />
+    <ClInclude Include="Tankfactory.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Sonidos\boing.ogg" />
+    <None Include="Sonidos\cambio_turno.ogg" />
+    <None Include="Sonidos\caminando.ogg" />
+    <None Include="Sonidos\click.ogg" />
+    <None Include="Sonidos\disparo.ogg" />
+    <None Include="Sonidos\herir.ogg" />
+    <None Include="Sonidos\muerte.ogg" />
+    <None Include="Sonidos\powerup_activado.ogg" />
+    <None Include="Sonidos\recoger_powerup.ogg" />
+    <None Include="Sonidos\resultados.ogg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="Sonidos\musica_fondo.mp3" />
+    <Media Include="Sonidos\musica_inicio.mp3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TankAttack.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
